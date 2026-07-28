@@ -511,6 +511,8 @@ export const statusColorCodes:any = {
   REJECTED:'#F35421',
   CANCELLED:'#F35421',
   PENDING:'#FFD600',
+  APPLIED:'#FFD600',
+  PARTIAL:'#D97706',
   INVITED:'#4D69FA',
  
 

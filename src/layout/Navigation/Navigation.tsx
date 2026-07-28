@@ -1,6 +1,7 @@
-import React, { FC, forwardRef, HTMLAttributes, ReactNode, useState } from 'react';
+import React, { FC, forwardRef, HTMLAttributes, ReactNode, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TIcons } from '../../type/icons-type';
 import Item from './Item';
@@ -64,11 +65,37 @@ interface INavigationProps {
 	id: string;
 	className?: string;
 }
+const findActiveParentId = (
+	data: INavigationProps['menu'],
+	pathname: string,
+): string | undefined => {
+	const matchesPath = (path?: string) => {
+		if (!path || path === '/') return false;
+		if (path.startsWith('/')) {
+			return pathname === path || pathname.startsWith(`${path}/`);
+		}
+		return pathname.includes(path);
+	};
+
+	for (const key of Object.keys(data)) {
+		const item = data[key];
+		if (!item?.subMenu) continue;
+		const childMatch = Object.values(item.subMenu).some((child) => matchesPath(child?.path));
+		if (childMatch && item.id != null) return String(item.id);
+	}
+	return undefined;
+};
+
 const Navigation = forwardRef<HTMLElement, INavigationProps>(
 	({ menu, horizontal, id, className, ...props }, ref) => {
-		const [activeItem, setActiveItem] = useState(undefined);
-		
+		const [activeItem, setActiveItem] = useState<string | undefined>(undefined);
+		const location = useLocation();
 		const { t } = useTranslation('menu');
+
+		useEffect(() => {
+			const parentId = findActiveParentId(menu, location.pathname);
+			if (parentId) setActiveItem(parentId);
+		}, [location.pathname, menu]);
 
 		function fillMenu(
 			data:

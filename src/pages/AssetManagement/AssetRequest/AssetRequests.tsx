@@ -14,26 +14,18 @@ import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import Button from '../../../components/bootstrap/Button';
-import {
-	isSelfEquivalentMode,
-} from '../../../helpers/roleToggleUtils';
-import AssetRequestActionButtons from './AssetRequestActionButtons';
-import AssetRequestViewDocumentsModal, {
-	type AssetRequestViewDocumentsContext,
-} from './AssetRequestViewDocumentsModal';
+import { isSelfEquivalentMode } from '../../../helpers/roleToggleUtils';
 import AssetRequestCommentsModal, {
 	type AssetRequestCommentsContext,
 } from './AssetRequestCommentsModal';
-import AssetApprovalTimelineModal, {
-	type AssetApprovalTimelineContext,
-} from './AssetApprovalTimelineModal';
+import AssetRequestItemsModal, {
+	type AssetRequestItemsModalContext,
+} from './AssetRequestItemsModal';
 import {
 	ASSET_REQUEST_STATUS_LOOKUP,
 	assetRequestRowStatus,
 	assetRequestStatusCode,
-	hasAssetDocuments,
 	isEditableAssetRequestStatus,
-	resolveAssetDocumentsFromRow,
 } from './assetRequestUtils';
 
 type AssetRequestsProps = {
@@ -59,25 +51,13 @@ const AssetRequests = ({
 	const [filterEnabled, setFilterEnabled] = useState(Boolean(statusFilter));
 	const [pageSize, setPageSize] = useState(5);
 	const [sortState, setSortState] = useState({ orderBy: null, orderDirection: 'asc' });
-	const [viewDocsOpen, setViewDocsOpen] = useState(false);
-	const [viewDocsContext, setViewDocsContext] = useState<AssetRequestViewDocumentsContext | null>(
-		null,
-	);
 	const [commentsOpen, setCommentsOpen] = useState(false);
 	const [commentsContext, setCommentsContext] = useState<AssetRequestCommentsContext | null>(null);
-	const [timelineOpen, setTimelineOpen] = useState(false);
-	const [timelineContext, setTimelineContext] = useState<AssetApprovalTimelineContext | null>(null);
+	const [itemsModalOpen, setItemsModalOpen] = useState(false);
+	const [itemsModalContext, setItemsModalContext] =
+		useState<AssetRequestItemsModalContext | null>(null);
 	const { theme, rowStyles, headerStyles } = useTablestyle();
 	const { showErrorNotification } = useToasterNotification();
-
-	const openViewDocuments = useCallback((rowData: any) => {
-		setViewDocsContext({
-			assetRequestId: rowData?.id,
-			employeeName: rowData?.user?.name,
-			documents: resolveAssetDocumentsFromRow(rowData),
-		});
-		setViewDocsOpen(true);
-	}, []);
 
 	const openComments = useCallback((rowData: any) => {
 		setCommentsContext({
@@ -89,14 +69,14 @@ const AssetRequests = ({
 		setCommentsOpen(true);
 	}, []);
 
-	const openApprovalTimeline = useCallback((rowData: any) => {
-		setTimelineContext({
+	const openItemsModal = useCallback((rowData: any) => {
+		setItemsModalContext({
 			assetRequestId: rowData?.id,
 			employeeName: rowData?.user?.name,
 			description: rowData?.description,
 			overallStatus: assetRequestRowStatus(rowData),
 		});
-		setTimelineOpen(true);
+		setItemsModalOpen(true);
 	}, []);
 
 	const showEditAssetRequest = useCallback(
@@ -139,15 +119,24 @@ const AssetRequests = ({
 				render: (rowData: any) => {
 					const displayStatus = assetRequestRowStatus(rowData);
 					return (
-						<StatusBadge
-							status={assetRequestStatusCode(rowData) || displayStatus}
-							emptyFallback='----'
-						/>
+						<button
+							type='button'
+							className='btn btn-link p-0 border-0 text-decoration-none'
+							onClick={(e) => {
+								e.stopPropagation();
+								openItemsModal(rowData);
+							}}
+							title='View requested items'>
+							<StatusBadge
+								status={assetRequestStatusCode(rowData) || displayStatus}
+								emptyFallback='----'
+							/>
+						</button>
 					);
 				},
 			},
 		],
-		[statusFilter],
+		[statusFilter, openItemsModal],
 	);
 
 	const columns = useMemo(() => {
@@ -160,14 +149,7 @@ const AssetRequests = ({
 			filtering: false,
 			render: (rowData: any) => (
 				<div className='d-flex flex-row flex-nowrap gap-1 justify-content-end align-items-center'>
-					<AssetRequestActionButtons
-						id={rowData.id}
-						tableRef={tableRef}
-						canApprove={rowData?.actions?.can_approve}
-						canReject={rowData?.actions?.can_reject}
-						canCancel={rowData?.actions?.can_cancel}
-					/>
-					<Tooltip arrow title='View approval status' placement='top'>
+					<Tooltip arrow title='View requested items' placement='top'>
 						<Button
 							type='button'
 							color='warning'
@@ -176,7 +158,7 @@ const AssetRequests = ({
 							icon='Visibility'
 							onClick={(e: React.MouseEvent) => {
 								e.stopPropagation();
-								openApprovalTimeline(rowData);
+								openItemsModal(rowData);
 							}}
 						/>
 					</Tooltip>
@@ -193,21 +175,6 @@ const AssetRequests = ({
 							}}
 						/>
 					</Tooltip>
-					{hasAssetDocuments(rowData) ? (
-						<Tooltip arrow title='View documents' placement='top'>
-							<Button
-								type='button'
-								color='success'
-								isLight
-								size='sm'
-								icon='Description'
-								onClick={(e: React.MouseEvent) => {
-									e.stopPropagation();
-									openViewDocuments(rowData);
-								}}
-							/>
-						</Tooltip>
-					) : null}
 					{showEditAssetRequest(rowData) ? (
 						<EditButton modalShow={editModalToggle} id={rowData.id} />
 					) : null}
@@ -215,15 +182,7 @@ const AssetRequests = ({
 			),
 		};
 		return [...staticColumns, actionColumn];
-	}, [
-		staticColumns,
-		showEditAssetRequest,
-		tableRef,
-		editModalToggle,
-		openViewDocuments,
-		openComments,
-		openApprovalTimeline,
-	]);
+	}, [staticColumns, showEditAssetRequest, editModalToggle, openComments, openItemsModal]);
 
 	const tableActions = useMemo(
 		() => [
@@ -253,20 +212,16 @@ const AssetRequests = ({
 
 	return (
 		<>
-			<AssetApprovalTimelineModal
-				isOpen={timelineOpen}
-				setIsOpen={setTimelineOpen}
-				context={timelineContext}
+			<AssetRequestItemsModal
+				isOpen={itemsModalOpen}
+				setIsOpen={setItemsModalOpen}
+				context={itemsModalContext}
+				tableRef={tableRef}
 			/>
 			<AssetRequestCommentsModal
 				isOpen={commentsOpen}
 				setIsOpen={setCommentsOpen}
 				context={commentsContext}
-			/>
-			<AssetRequestViewDocumentsModal
-				isOpen={viewDocsOpen}
-				setIsOpen={setViewDocsOpen}
-				context={viewDocsContext}
 			/>
 			<Card stretch>
 				<CardBody>

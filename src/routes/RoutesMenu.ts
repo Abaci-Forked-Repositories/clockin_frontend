@@ -61,6 +61,14 @@ export const allRoutesObject = {
 		id: 'AssetRequests',
 		path: '/asset-requests',
 	},
+	Assets: {
+		id: 'Assets',
+		path: '/assets',
+	},
+	AssetTypes: {
+		id: 'AssetTypes',
+		path: '/asset-types',
+	},
 	WfhRequests: {
 		id: 'WfhRequests',
 		path: '/wfh-requests',
@@ -68,6 +76,10 @@ export const allRoutesObject = {
 	LeaveTypes: {
 		id: 'LeaveTypes',
 		path: '/leave-types',
+	},
+	CompOffCredits: {
+		id: 'CompOffCredits',
+		path: '/comp-off-credits',
 	},
 	/** @deprecated Use LeaveRequests.path — kept for redirects */
 	LeaveManagement: {
@@ -133,7 +145,6 @@ export const allRoutesObject = {
 
 
 export const CompanyAdminRoutes = {
-	
 	dashboard: {
 		id: 'dashboard',
 		text: 'Dashboard',
@@ -141,113 +152,164 @@ export const CompanyAdminRoutes = {
 		icon: 'Dashboard',
 		subMenu: null,
 	},
-	site:{
-		id: 'site',
-		text: 'Site',
-		icon: 'Apartment',
-		path: '/sites',
+	organization: {
+		id: 'Organization',
+		text: 'Organization',
+		path: 'organization',
+		icon: 'Business',
+		subMenu: {
+			site: {
+				id: 'site',
+				text: 'Site',
+				icon: 'Apartment',
+				path: '/sites',
+			},
+			userManagment: {
+				id: 'CompanyUsers',
+				text: 'Users',
+				path: '/users',
+				icon: 'Person',
+			},
+			UserGroups: {
+				id: 'UserGroups',
+				text: 'Groups',
+				path: '/groups',
+				icon: 'Group',
+			},
+		},
 	},
-	userManagment: {
-		id: 'CompanyUsers',
-		text: 'Users',
-		path: '/users',
-		icon: 'Person',
+	accessControl: {
+		id: 'AccessControl',
+		text: 'Access Control',
+		path: 'access-control',
+		icon: 'Lock',
+		subMenu: {
+			Doors: {
+				id: 'Doors',
+				text: 'Doors',
+				path: '/doors',
+				icon: 'DoorFront',
+			},
+		},
 	},
-	UserGroups: {
-		id: 'UserGroups',
-		text: 'Groups',
-		path: '/groups',
-		icon: 'Group',
-	},
-	Schedule: {
-		id: 'Schedule',
-		text: 'Schedule',
-		path: '/schedule',
+	scheduling: {
+		id: 'Scheduling',
+		text: 'Scheduling',
+		path: 'scheduling',
 		icon: 'PendingActions',
+		subMenu: {
+			Schedule: {
+				id: 'Schedule',
+				text: 'Schedule',
+				path: '/schedule',
+				icon: 'PendingActions',
+			},
+			Shift: {
+				id: 'Shift',
+				text: 'Shift',
+				path: '/shift',
+				icon: 'AccessTime',
+			},
+			SpecialPeriod: {
+				id: 'SpecialPeriod',
+				text: 'Special Period',
+				path: '/special-period',
+				icon: 'Event',
+			},
+		},
 	},
-	SpecialPeriod: {
-		id: 'SpecialPeriod',
-		text: 'Special Period',
-		path: '/special-period',
-		icon: 'Event',
-	},
-	Shift: {
-		id: 'Shift',
-		text: 'Shift',
-		path: '/shift',
-		icon: 'AccessTime',
-	},
-	Doors: {
-		id: 'Doors',
-		text: 'Doors',
-		path: '/doors',
-		icon: 'DoorFront',
-	},
-	// RoleManagement: {
-	// 	id: 'RoleManagement',
-	// 	text: 'Roles',
-	// 	path: '/roles',
-	// 	icon: 'Badge',
-	// },
-	LeaveRequests: {
-		id: 'LeaveRequests',
-		text: 'Leave Requests',
-		path: '/leave-requests',
-		icon: 'Event',
-	},
-	AssetRequests: {
-		id: 'AssetRequests',
-		text: 'Asset Requests',
-		path: '/asset-requests',
-		icon: 'Inventory',
-	},
-	WfhRequests: {
-		id: 'WfhRequests',
-		text: 'WFH Requests',
-		path: '/wfh-requests',
-		icon: 'HomeWork',
-	},
-	LeaveTypes: {
-		id: 'LeaveTypes',
-		text: 'Leave Types',
-		path: '/leave-types',
+	leaveAndCompOff: {
+		id: 'LeaveAndCompOff',
+		text: 'Leave & Comp Off',
+		path: 'leave-and-comp-off',
 		icon: 'EventNote',
+		subMenu: {
+			LeaveRequests: {
+				id: 'LeaveRequests',
+				text: 'Leave Requests',
+				path: '/leave-requests',
+				icon: 'Event',
+			},
+			LeaveTypes: {
+				id: 'LeaveTypes',
+				text: 'Leave Types',
+				path: '/leave-types',
+				icon: 'EventNote',
+			},
+			CompOffCredits: {
+				id: 'CompOffCredits',
+				text: 'Comp Off Credits',
+				path: '/comp-off-credits',
+				icon: 'MoreTime',
+			},
+		},
 	},
-	Attendance: {
-		id: 'Attendance',
+	assets: {
+		id: 'AssetsGroup',
+		text: 'Assets',
+		path: 'assets-group',
+		icon: 'Inventory',
+		subMenu: {
+			Assets: {
+				id: 'Assets',
+				text: 'Assets',
+				path: '/assets',
+				icon: 'DevicesOther',
+			},
+			AssetTypes: {
+				id: 'AssetTypes',
+				text: 'Asset Types',
+				path: '/asset-types',
+				icon: 'Category',
+			},
+			AssetRequests: {
+				id: 'AssetRequests',
+				text: 'Asset Requests',
+				path: '/asset-requests',
+				icon: 'Inventory',
+			},
+		},
+	},
+	remoteWork: {
+		id: 'RemoteWork',
+		text: 'Remote Work',
+		path: 'remote-work',
+		icon: 'HomeWork',
+		subMenu: {
+			WfhRequests: {
+				id: 'WfhRequests',
+				text: 'WFH Requests',
+				path: '/wfh-requests',
+				icon: 'HomeWork',
+			},
+		},
+	},
+	attendanceGroup: {
+		id: 'AttendanceGroup',
 		text: 'Attendance',
-		path: '/attendance',
-		icon: 'Event',
+		path: 'attendance-group',
+		icon: 'FactCheck',
+		subMenu: {
+			Attendance: {
+				id: 'Attendance',
+				text: 'Attendance',
+				path: '/attendance',
+				icon: 'Event',
+			},
+			EventLog: {
+				id: 'EventLog',
+				text: 'Event Log',
+				path: '/event-log',
+				icon: 'Description',
+			},
+		},
 	},
-	EventLog: {
-		id: 'EventLog',
-		text: 'Event Log',
-		path: '/event-log',
-		icon: 'Description',
-	},
-
-
 	Settings: {
 		id: 'Settings',
 		text: 'Settings',
 		path: 'settings',
 		icon: 'Settings',
-	
-		}
-			
-		
-	// },
-	
-
-
-	// userDashboard: {
-	// 	id: 'userDashboard',
-	// 	text: 'User Dashboard',
-	// 	path: '/dashboard',
-	// 	icon: 'Dashboard',
-	// 	subMenu: null,
-	// },
-
+	},
 };
 
 

@@ -1,14 +1,8 @@
-export type AssetRequestDocument = {
-	id?: number | string;
-	name?: string;
-	file?: string;
-	uploaded_at?: string;
-};
-
 export const ASSET_REQUEST_STATUS_LOOKUP: Record<string, string> = {
 	PENDING: 'Pending',
 	APPLIED: 'Applied',
 	APPROVED: 'Approved',
+	PARTIAL: 'Partial',
 	REJECTED: 'Rejected',
 	CANCELLED: 'Cancelled',
 };
@@ -20,8 +14,58 @@ export const assetRequestActionUrl = (
 	action: AssetRequestAction,
 ): string => `/api/hr/asset-requests/${id}/${action}/`;
 
+export const assetRequestItemActionUrl = (
+	requestId: number | string,
+	itemId: number | string,
+	action: AssetRequestAction,
+): string => `/api/hr/asset-requests/${requestId}/items/${itemId}/${action}/`;
+
 export const assetRequestDetailUrl = (id: number | string): string =>
 	`/api/hr/asset-requests/${id}/`;
+
+export type AssetRequestItemActions = {
+	can_approve?: boolean;
+	can_reject?: boolean;
+	can_cancel?: boolean;
+};
+
+export type AssetRequestDetailItem = {
+	id?: number | string;
+	asset_item?: any;
+	asset_type?: any;
+	qty?: string | number | null;
+	quantity_requested?: string | number | null;
+	start_date?: string | null;
+	end_date?: string | null;
+	status?: string;
+	status_display?: string;
+	reviewed_by?: any;
+	review_remarks?: string | null;
+	reviewed_at?: string | null;
+	cancel_reason?: string | null;
+	approval_steps?: any[];
+	current_approval_level?: number | null;
+	actions?: AssetRequestItemActions;
+	description?: string | null;
+};
+
+export const resolveAssetRequestItems = (detail: any): AssetRequestDetailItem[] => {
+	if (Array.isArray(detail?.items)) return detail.items;
+	if (Array.isArray(detail?.request_items)) return detail.request_items;
+	return [];
+};
+
+export const assetRequestItemLabel = (item: AssetRequestDetailItem): string => {
+	const assetItemName =
+		typeof item?.asset_item === 'object' && item.asset_item != null
+			? String(item.asset_item.name || item.asset_item.asset_code || '').trim()
+			: '';
+	const assetTypeName =
+		typeof item?.asset_type === 'object' && item.asset_type != null
+			? String(item.asset_type.name || '').trim()
+			: '';
+	return assetItemName || assetTypeName || `Item ${item?.id ?? ''}`;
+};
 
 export const assetRequestCommandsUrl = (id: number | string): string =>
 	`/api/hr/asset-requests/${id}/commands/`;
@@ -91,10 +135,15 @@ export const formatAssetRequestCommandAuthor = (commandBy: unknown): string | nu
 export const assetRequestRowStatus = (row: any): string | undefined =>
 	row?.status ?? row?.approval_status ?? row?.state ?? row?.meta_data?.status ?? undefined;
 
-export const assetRequestStatusCode = (row: any): string =>
-	String(row?.status_code ?? '')
+export const assetRequestStatusCode = (row: any): string => {
+	const code = String(row?.status_code ?? '')
 		.trim()
 		.toUpperCase();
+	if (code) return code;
+	return String(row?.status ?? '')
+		.trim()
+		.toUpperCase();
+};
 
 export const isEditableAssetRequestStatus = (
 	status: string | undefined | null,
@@ -109,43 +158,4 @@ export const isEditableAssetRequestStatus = (
 		.trim()
 		.toUpperCase();
 	return key === 'APPLIED' || key === 'PENDING' || key.startsWith('PENDING');
-};
-
-export const normalizeAssetDocuments = (raw: unknown): AssetRequestDocument[] => {
-	if (Array.isArray(raw)) {
-		return raw.filter((item) => item != null) as AssetRequestDocument[];
-	}
-	if (raw && typeof raw === 'object') {
-		return [raw as AssetRequestDocument];
-	}
-	if (typeof raw === 'string' && raw.trim()) {
-		return [{ file: raw.trim() }];
-	}
-	return [];
-};
-
-export const resolveAssetDocumentsFromRow = (row: any): AssetRequestDocument[] =>
-	normalizeAssetDocuments(
-		row?.documents ??
-			row?.attachments ??
-			row?.documents_data ??
-			(row?.document != null ? row.document : null),
-	);
-
-export const hasAssetDocuments = (row: any): boolean =>
-	resolveAssetDocumentsFromRow(row).length > 0;
-
-export const assetRequestDocumentLabel = (doc: AssetRequestDocument): string => {
-	if (doc.name?.trim()) return doc.name.trim();
-	if (typeof doc.file === 'string' && doc.file) {
-		try {
-			return (
-				decodeURIComponent(new URL(doc.file).pathname.split('/').pop() || '') ||
-				`Document ${doc.id ?? ''}`
-			);
-		} catch {
-			return doc.file.split('/').pop() || `Document ${doc.id ?? ''}`;
-		}
-	}
-	return `Document ${doc.id ?? ''}`.trim();
 };

@@ -20,8 +20,11 @@ const MAINROUTE={
 	UserDetails: lazy(() => import('../pages/UserManagement/UserManagementPage')),
 	LeaveRequests: lazy(() => import('../pages/LeaveManagement/LeaveRequestsPage')),
 	AssetRequests: lazy(() => import('../pages/AssetManagement/AssetRequestsPage')),
+	Assets: lazy(() => import('../pages/AssetManagement/AssetsPage')),
+	AssetTypes: lazy(() => import('../pages/AssetManagement/AssetTypesPage')),
 	WfhRequests: lazy(() => import('../pages/WfhManagement/WfhRequestsPage')),
 	LeaveTypes: lazy(() => import('../pages/LeaveManagement/LeaveTypesPage')),
+	CompOffCredits: lazy(() => import('../pages/CompOffManagement/CompOffCreditsPage')),
 	LeaveManagement: lazy(() => import('../pages/LeaveManagement/index')),
 	Attendance: lazy(() => import('../pages/Attendance/index')),
 	UserSchedule: lazy(() => import('../pages/UserSchedule')),
@@ -124,6 +127,16 @@ const RouteConfig: CustomRouteConfig[] = [
 		allowedTo: SELF_MODE_ROUTES,
 	},
 	{
+		path: allRoutesObject.Assets.path,
+		element: <MAINROUTE.Assets />,
+		allowedTo: ADMIN_CONSOLE_ROLES,
+	},
+	{
+		path: allRoutesObject.AssetTypes.path,
+		element: <MAINROUTE.AssetTypes />,
+		allowedTo: ADMIN_CONSOLE_ROLES,
+	},
+	{
 		path: allRoutesObject.WfhRequests.path,
 		element: <MAINROUTE.WfhRequests />,
 		allowedTo: SELF_MODE_ROUTES,
@@ -131,6 +144,11 @@ const RouteConfig: CustomRouteConfig[] = [
 	{
 		path: allRoutesObject.LeaveTypes.path,
 		element: <MAINROUTE.LeaveTypes />,
+		allowedTo: ADMIN_CONSOLE_ROLES,
+	},
+	{
+		path: allRoutesObject.CompOffCredits.path,
+		element: <MAINROUTE.CompOffCredits />,
 		allowedTo: ADMIN_CONSOLE_ROLES,
 	},
 	{

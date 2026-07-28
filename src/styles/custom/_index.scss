@@ -607,6 +607,12 @@ overflow-x: hidden;
    overflow: auto;
   }
 
+  .material-table-wrapper.comp-off-credits-table {
+    .MuiTableBody-root {
+      min-height: 260px; // ~5 data rows at default row height
+    }
+  }
+
 [theme='dark'] {
 	.material-table-wrapper {
 		.MuiTableCell-head,

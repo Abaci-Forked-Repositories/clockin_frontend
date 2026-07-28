@@ -70,7 +70,12 @@ const Item: FC<IItemProps> = ({
 	const location = useLocation();
 
 	// For aside menu
-	const here = typeof to === 'string' && to !== '/' && location.pathname.includes(to);
+	const here =
+		typeof to === 'string' &&
+		to !== '/' &&
+		(to.startsWith('/')
+			? location.pathname === to || location.pathname.startsWith(`${to}/`)
+			: location.pathname.includes(to));
 	// For top menu
 	const match = to !== '/' && location.pathname === to;
 

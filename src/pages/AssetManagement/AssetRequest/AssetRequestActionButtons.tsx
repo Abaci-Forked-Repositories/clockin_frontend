@@ -5,11 +5,17 @@ import Button from '../../../components/bootstrap/Button';
 import { authAxios } from '../../../axiosInstance';
 import { buttonColor } from '../../../helpers/constants';
 import { extractApiErrorMessage } from '../../../hooks/useErrorHandler';
-import { assetRequestActionUrl, type AssetRequestAction } from './assetRequestUtils';
+import {
+	assetRequestActionUrl,
+	assetRequestItemActionUrl,
+	type AssetRequestAction,
+} from './assetRequestUtils';
 
 type AssetRequestActionButtonsProps = {
-	id: number;
-	tableRef: MutableRefObject<any>;
+	id: number | string;
+	itemId?: number | string | null;
+	tableRef?: MutableRefObject<any> | null;
+	onActionSuccess?: () => void;
 	canApprove?: boolean;
 	canReject?: boolean;
 	canCancel?: boolean;
@@ -17,7 +23,9 @@ type AssetRequestActionButtonsProps = {
 
 const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 	id,
-	tableRef,
+	itemId = null,
+	tableRef = null,
+	onActionSuccess,
 	canApprove,
 	canReject,
 	canCancel,
@@ -32,7 +40,7 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 
 	const runAction = (label: string, colorIndex: number, action: AssetRequestAction) => {
 		Swal.fire({
-			title: `${label} request?`,
+			title: `${label} item?`,
 			icon: 'question',
 			text: 'This action cannot be undone.',
 			showCancelButton: true,
@@ -44,8 +52,13 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 			showLoaderOnConfirm: true,
 			preConfirm: async () => {
 				try {
-					const response = await authAxios.post(assetRequestActionUrl(id, action));
-					tableRef.current?.onQueryChange?.();
+					const url =
+						itemId != null
+							? assetRequestItemActionUrl(id, itemId, action)
+							: assetRequestActionUrl(id, action);
+					const response = await authAxios.post(url);
+					tableRef?.current?.onQueryChange?.();
+					onActionSuccess?.();
 					return response.data;
 				} catch (error) {
 					const apiMessage = extractApiErrorMessage(error);

@@ -6,28 +6,31 @@ import OffCanvasComponent from '../../../components/OffCanvasComponent';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import SaveButton from '../../../components/CustomComponent/Buttons/SaveButton';
 import CustomSpinner from '../../../components/CustomSpinner/CustomSpinner';
-import { authAxios, authAxiosFileUpload } from '../../../axiosInstance';
+import { authAxios } from '../../../axiosInstance';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import AssetRequestField from './AssetRequestField';
+import {
+	buildAssetRequestItemsPayload,
+	emptyAssetRequestItem,
+	mapApiItemToForm,
+	mapAssetItemToOption,
+	mapAssetTypeToOption,
+	toList,
+	validateAssetRequestItems,
+	type AssetItemOption,
+	type AssetTypeOption,
+} from './assetRequestItemUtils';
 
-const appendFormField = (formData: FormData, key: string, value: unknown) => {
-	if (value != null && value !== '') {
-		formData.append(key, String(value));
-	}
-};
+const buildAssetRequestPayload = (data: any) => ({
+	description: data?.description || '',
+	items: buildAssetRequestItemsPayload(data?.items),
+});
 
-export const buildAssetRequestFormData = (data: any): FormData => {
-	const formData = new FormData();
-	appendFormField(formData, 'description', data?.description);
-
-	const files = data?.documents;
-	if (files?.length) {
-		Array.from(files as FileList).forEach((file) => {
-			formData.append('documents', file);
-		});
-	}
-
-	return formData;
+const fetchAssetItemsForType = async (typeId: number): Promise<AssetItemOption[]> => {
+	const res = await authAxios.get('/api/hr/asset-items/', {
+		params: { asset_type: typeId, paginate: 'off' },
+	});
+	return toList(res?.data).map(mapAssetItemToOption);
 };
 
 const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
@@ -35,16 +38,21 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors },
+		control,
+		getValues,
+		setValue,
+	formState: { errors },
 	} = useForm({
 		defaultValues: {
 			description: '',
+			items: [emptyAssetRequestItem()],
 		},
 	});
 
 	const [waitingForAxios, setWaitingForAxios] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
-	const { showErrorNotification } = useToasterNotification();
+	const [assetTypeOptions, setAssetTypeOptions] = useState<AssetTypeOption[]>([]);
+	const { showErrorNotification, showNotification } = useToasterNotification();
 	const showErrorRef = useRef(showErrorNotification);
 	showErrorRef.current = showErrorNotification;
 	const isEdit = Boolean(id);
@@ -53,20 +61,55 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		if (!isOpen) return undefined;
 
 		let cancelled = false;
-		setIsLoading(isEdit);
+		setIsLoading(true);
 
-		if (!isEdit) {
-			reset({ description: '' });
-			setIsLoading(false);
-			return undefined;
-		}
+		const assetTypesReq = authAxios.get('/api/hr/asset-types/', { params: { paginate: 'off' } });
+		const requestReq = isEdit
+			? authAxios.get(`/api/hr/asset-requests/${id}/`)
+			: Promise.resolve(null);
 
-		authAxios
-			.get(`/api/hr/asset-requests/${id}/`)
-			.then((res) => {
+		Promise.all([assetTypesReq, requestReq])
+			.then(async ([typesRes, requestRes]) => {
 				if (cancelled) return;
+
+				const typeOpts = toList(typesRes?.data).map(mapAssetTypeToOption);
+				setAssetTypeOptions(typeOpts);
+
+				if (!isEdit) {
+					reset({
+						description: '',
+						items: [emptyAssetRequestItem()],
+					});
+					return;
+				}
+
+				const requestData = requestRes?.data ?? {};
+				const apiItems = Array.isArray(requestData.items) ? requestData.items : [];
+				const assetItemOptionsByType: Record<number, AssetItemOption[]> = {};
+
+				await Promise.all(
+					apiItems.map(async (apiItem: any) => {
+						const typeId =
+							apiItem?.asset_type?.id ??
+							apiItem?.asset_type ??
+							apiItem?.asset_item?.asset_type?.id ??
+							apiItem?.asset_item?.asset_type;
+						if (typeId == null || assetItemOptionsByType[Number(typeId)]) return;
+						assetItemOptionsByType[Number(typeId)] = await fetchAssetItemsForType(
+							Number(typeId),
+						);
+					}),
+				);
+
+				const items = apiItems.length
+					? apiItems.map((apiItem: any) =>
+							mapApiItemToForm(apiItem, typeOpts, assetItemOptionsByType),
+						)
+					: [emptyAssetRequestItem()];
+
 				reset({
-					description: res?.data?.description || '',
+					description: requestData?.description || '',
+					items,
 				});
 			})
 			.catch((err) => {
@@ -83,12 +126,18 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 	}, [isOpen, id, isEdit]);
 
 	const onSubmit = (data: any) => {
+		const itemsError = validateAssetRequestItems(data?.items);
+		if (itemsError) {
+			showNotification('Error', itemsError, 'danger');
+			return;
+		}
+
 		setWaitingForAxios(true);
-		const formData = buildAssetRequestFormData(data);
+		const payload = buildAssetRequestPayload(data);
 
 		const req = isEdit
-			? authAxiosFileUpload.patch(`/api/hr/asset-requests/${id}/`, formData)
-			: authAxiosFileUpload.post('/api/hr/asset-requests/', formData);
+			? authAxios.patch(`/api/hr/asset-requests/${id}/`, payload)
+			: authAxios.post('/api/hr/asset-requests/', payload);
 
 		req
 			.then(() => {
@@ -111,7 +160,14 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 							<CustomSpinner />
 						) : (
 							<>
-								<AssetRequestField register={register} errors={errors} isEdit={isEdit} />
+								<AssetRequestField
+									register={register}
+									control={control}
+									getValues={getValues}
+									setValue={setValue}
+									errors={errors}
+									assetTypeOptions={assetTypeOptions}
+								/>
 								<div className='row m-0'>
 									<div className='col-12 p-3'>
 										<SaveButton state={waitingForAxios} />

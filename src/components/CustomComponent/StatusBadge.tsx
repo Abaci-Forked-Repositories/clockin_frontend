@@ -49,6 +49,9 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
 	unknown: { styleKey: 'Check', icon: 'HelpOutline', label: 'Unknown' },
 	requested: { styleKey: 'Scheduled', icon: 'Schedule', label: 'Requested' },
 	applied: { styleKey: 'Scheduled', icon: 'Schedule', label: 'Applied' },
+	partial: { styleKey: 'Inactive', icon: 'Timelapse', label: 'Partial' },
+	partially_approved: { styleKey: 'Inactive', icon: 'Timelapse', label: 'Partial' },
+	partial_approved: { styleKey: 'Inactive', icon: 'Timelapse', label: 'Partial' },
 	request_cancelled: { styleKey: 'Cancelled', icon: 'Cancel', label: 'Request Cancelled' },
 	scheduled: { styleKey: 'Scheduled', icon: 'Schedule', label: 'Scheduled' },
 };
@@ -112,12 +115,19 @@ const getPillStyles = (styleKey: string, themeStatus: string): PillStyle => {
 
 type StatusBadgeProps = {
 	status?: string | null;
+	label?: string | null;
 	is_active?: boolean;
 	isAvailable?: boolean;
 	emptyFallback?: string;
 };
 
-const StatusBadge = ({ status, is_active, isAvailable, emptyFallback }: StatusBadgeProps) => {
+const StatusBadge = ({
+	status,
+	label: labelOverride,
+	is_active,
+	isAvailable,
+	emptyFallback,
+}: StatusBadgeProps) => {
 	const { themeStatus } = useDarkMode();
 	const normalizedFromStatus = status ? normalizeStatusKey(status) : '';
 
@@ -140,7 +150,10 @@ const StatusBadge = ({ status, is_active, isAvailable, emptyFallback }: StatusBa
 		const config = STATUS_CONFIG[normalized] || STATUS_CONFIG.unknown;
 		styleKey = config.styleKey;
 		icon = config.icon;
-		label = config.label ?? toTitleCase(normalized);
+		label =
+			(labelOverride && String(labelOverride).trim()) ||
+			config.label ||
+			toTitleCase(normalized);
 	} else if (typeof is_active === 'boolean') {
 		normalized = is_active ? 'active' : 'inactive';
 		const config = STATUS_CONFIG[normalized];
@@ -157,7 +170,7 @@ const StatusBadge = ({ status, is_active, isAvailable, emptyFallback }: StatusBa
 		const config = STATUS_CONFIG.unknown;
 		styleKey = config.styleKey;
 		icon = config.icon;
-		label = config.label || 'Unknown';
+		label = (labelOverride && String(labelOverride).trim()) || config.label || 'Unknown';
 	}
 
 	const badgeStyles = getPillStyles(styleKey, themeStatus);
@@ -197,6 +210,7 @@ const StatusBadge = ({ status, is_active, isAvailable, emptyFallback }: StatusBa
 /* eslint-disable react/forbid-prop-types */
 StatusBadge.propTypes = {
 	status: PropTypes.string,
+	label: PropTypes.string,
 	is_active: PropTypes.bool,
 	isAvailable: PropTypes.bool,
 	emptyFallback: PropTypes.string,
@@ -205,6 +219,7 @@ StatusBadge.propTypes = {
 
 StatusBadge.defaultProps = {
 	status: null,
+	label: null,
 	is_active: undefined,
 	isAvailable: undefined,
 	emptyFallback: undefined,

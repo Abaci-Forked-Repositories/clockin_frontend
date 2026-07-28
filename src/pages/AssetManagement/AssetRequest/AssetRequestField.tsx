@@ -1,13 +1,25 @@
 import React from 'react';
 import FormGroup from '../../../components/bootstrap/forms/FormGroup';
+import AssetRequestItemsSection from './AssetRequestItemsSection';
+import { type AssetTypeOption } from './assetRequestItemUtils';
 
 type AssetRequestFieldProps = {
 	register: any;
+	control: any;
+	getValues: any;
+	setValue: any;
 	errors: any;
-	isEdit?: boolean;
+	assetTypeOptions: AssetTypeOption[];
 };
 
-const AssetRequestField = ({ register, errors, isEdit = false }: AssetRequestFieldProps) => (
+const AssetRequestField = ({
+	register,
+	control,
+	getValues,
+	setValue,
+	errors,
+	assetTypeOptions,
+}: AssetRequestFieldProps) => (
 	<div className='row'>
 		<div className='col-12 mb-3'>
 			<FormGroup label='Description *'>
@@ -22,22 +34,15 @@ const AssetRequestField = ({ register, errors, isEdit = false }: AssetRequestFie
 				)}
 			</FormGroup>
 		</div>
-		<div className='col-12 mb-2'>
-			<FormGroup label={isEdit ? 'Add documents' : 'Documents'}>
-				<input
-					type='file'
-					className='form-control'
-					multiple
-					accept='.pdf,.doc,.docx,.png,.jpg,.jpeg,.xls,.xlsx'
-					{...register('documents')}
-				/>
-				<div className='text-muted small mt-1'>
-					{isEdit
-						? 'Upload additional documents. Existing files remain attached.'
-						: 'Optional supporting documents for this request.'}
-				</div>
-			</FormGroup>
-		</div>
+
+		<AssetRequestItemsSection
+			control={control}
+			register={register}
+			errors={errors}
+			getValues={getValues}
+			setValue={setValue}
+			assetTypeOptions={assetTypeOptions}
+		/>
 	</div>
 );
 
