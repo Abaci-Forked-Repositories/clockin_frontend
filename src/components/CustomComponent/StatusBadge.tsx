@@ -54,6 +54,14 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
 	partial_approved: { styleKey: 'Inactive', icon: 'Timelapse', label: 'Partial' },
 	request_cancelled: { styleKey: 'Cancelled', icon: 'Cancel', label: 'Request Cancelled' },
 	scheduled: { styleKey: 'Scheduled', icon: 'Schedule', label: 'Scheduled' },
+	// Asset item statuses
+	available: { styleKey: 'Active', icon: 'CheckCircle', label: 'Available' },
+	assigned: { styleKey: 'Completed', icon: 'Person', label: 'Assigned' },
+	in_use: { styleKey: 'Scheduled', icon: 'Laptop', label: 'In Use' },
+	under_maintenance: { styleKey: 'Inactive', icon: 'Build', label: 'Under Maintenance' },
+	damaged: { styleKey: 'Cancelled', icon: 'BrokenImage', label: 'Damaged' },
+	lost: { styleKey: 'Cancelled', icon: 'SearchOff', label: 'Lost' },
+	disposed: { styleKey: 'Check', icon: 'DeleteForever', label: 'Disposed' },
 };
 
 const getPillStyles = (styleKey: string, themeStatus: string): PillStyle => {

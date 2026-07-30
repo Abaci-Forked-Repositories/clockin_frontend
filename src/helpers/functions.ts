@@ -475,6 +475,41 @@ export const imageUrlHandler=(url:any)=> {
 }
 
 
+/** Resolves account/user id from a table row (nested `user`, `user_id`, or account list row). */
+export const resolveTableRowUserId = (rowData: any): number | string | null => {
+	if (!rowData || typeof rowData !== 'object') return null;
+
+	const user = rowData.user;
+	if (user != null) {
+		if (typeof user === 'object' && !Array.isArray(user)) {
+			const id = user.id ?? user.pk ?? user.user_id;
+			if (id != null && id !== '') return id;
+		}
+		if (typeof user === 'number' || typeof user === 'string') {
+			const trimmed = String(user).trim();
+			if (trimmed !== '') return trimmed;
+		}
+	}
+
+	if (rowData.user_id != null && rowData.user_id !== '') {
+		return rowData.user_id;
+	}
+
+	if (
+		rowData.id != null &&
+		(rowData.first_name != null ||
+			rowData.email != null ||
+			rowData.employee_code != null ||
+			rowData.preferred_name != null)
+	) {
+		return rowData.id;
+	}
+
+	return null;
+};
+
+export const userDetailsPath = (userId: number | string) => `/user-details/${userId}`;
+
 /** Avatar from list/detail account payloads (full URL or media path). */
 export const resolveUserAvatarSource = (user: any): string | null => {
 	if (!user) return null;

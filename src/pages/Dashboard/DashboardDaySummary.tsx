@@ -25,7 +25,7 @@ import {
 	normalizeAttendanceStatusKey,
 } from '../Attendance/attendanceStatusUtils';
 import DashboardClockedUsersRow, {
-	clockedUsersFromCounts,
+	scheduledUsersFromRow,
 	type ClockCountsWithUsers,
 } from './DashboardClockedUsersRow';
 import {
@@ -80,6 +80,7 @@ export type DashboardGroupDetail = {
 	total_employees: number;
 	counts: StatusCounts;
 	clock_counts?: ClockCounts;
+	scheduled_users?: ClockCounts['scheduled_users'];
 };
 
 export type DashboardScheduleSummary = {
@@ -89,6 +90,7 @@ export type DashboardScheduleSummary = {
 	total_employees: number;
 	counts: StatusCounts;
 	clock_counts: ClockCounts;
+	scheduled_users?: ClockCounts['scheduled_users'];
 	group_details?: DashboardGroupDetail[];
 };
 
@@ -107,6 +109,7 @@ export type DashboardScheduleDetail = {
 	shift_details: DashboardShiftDetail[];
 	counts: StatusCounts;
 	clock_counts: ClockCounts;
+	scheduled_users?: ClockCounts['scheduled_users'];
 };
 
 export type DashboardDaySummary = {
@@ -342,9 +345,7 @@ const ScheduleDashboardCard = ({
 			<MetricPillsGrid pills={pills} />
 
 			<DashboardClockedUsersRow
-				users={clockedUsersFromCounts(
-					isOverall ? row.clock_counts : selectedGroup?.clock_counts,
-				)}
+				users={scheduledUsersFromRow(isOverall ? row : selectedGroup)}
 			/>
 
 			{groups.length > 0 ? (
@@ -600,7 +601,7 @@ const DashboardDaySummary = ({ scheduleId }: Props) => {
 											{clockValue(totalClock, 'clocked_in')}
 										</span>
 									</div>
-									<DashboardClockedUsersRow users={clockedUsersFromCounts(totalClock)} />
+									<DashboardClockedUsersRow users={scheduledUsersFromRow(totalClock)} />
 								</div>
 								<div className='hr-dashboard__clock-pill hr-dashboard__clock-pill--out'>
 									<div className='hr-dashboard__clock-pill-row'>
@@ -642,7 +643,7 @@ const DashboardDaySummary = ({ scheduleId }: Props) => {
 													)}
 												/>
 												<DashboardClockedUsersRow
-													users={clockedUsersFromCounts(group.clock_counts)}
+													users={scheduledUsersFromRow(group)}
 												/>
 												{group.group_id != null ? (
 													<Link

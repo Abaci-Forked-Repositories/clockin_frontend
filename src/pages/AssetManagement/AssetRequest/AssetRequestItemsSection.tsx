@@ -58,7 +58,8 @@ const AssetRequestItemsSection = ({
 	);
 };
 
-AssetRequestItemsSection.propTypes = {
+AssetRequestItemsSection.propTypes
+ = {
 	control: PropTypes.object.isRequired,
 	register: PropTypes.func.isRequired,
 	errors: PropTypes.object.isRequired,

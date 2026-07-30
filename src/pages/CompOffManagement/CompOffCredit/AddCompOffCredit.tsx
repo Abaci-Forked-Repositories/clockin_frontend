@@ -8,7 +8,7 @@ import SaveButton from '../../../components/CustomComponent/Buttons/SaveButton';
 import CustomSpinner from '../../../components/CustomSpinner/CustomSpinner';
 import { authAxios } from '../../../axiosInstance';
 import useToasterNotification from '../../../hooks/useToasterNotification';
-import CompOffCreditFields from './CompOffCreditFields';
+import CompOffCreditFields, { type CompOffWorkSummary } from './CompOffCreditFields';
 
 const formatAccountLabel = (item: any): string => {
 	if (!item) return '';
@@ -47,12 +47,31 @@ const buildPayload = (data: CompOffCreditFormValues) => ({
 	remarks: data.remarks?.trim() || '',
 });
 
-type CompOffWorkSummary = {
-	ot_mins_total: number | null;
-	extra_worked_mins_total: number | null;
+const getCurrentSummaryPeriod = () => {
+	const now = new Date();
+	return { month: now.getMonth() + 1, year: now.getFullYear() };
 };
 
-const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
+const parseWorkSummary = (data: any): CompOffWorkSummary => ({
+	month: data?.month != null ? Number(data.month) : null,
+	year: data?.year != null ? Number(data.year) : null,
+	ot_mins_total: data?.ot_mins_total != null ? Number(data.ot_mins_total) : null,
+	extra_worked_mins_total:
+		data?.extra_worked_mins_total != null ? Number(data.extra_worked_mins_total) : null,
+	extra_working_days:
+		data?.extra_working_days != null ? Number(data.extra_working_days) : null,
+	ot_days_count: data?.ot_days_count != null ? Number(data.ot_days_count) : null,
+});
+
+type AddCompOffCreditProps = {
+	isOpen: boolean;
+	setIsOpen: (open: boolean) => void;
+	tableRef: React.MutableRefObject<any>;
+	title: string;
+	id?: number | string | null;
+};
+
+const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id = null }: AddCompOffCreditProps) => {
 	const {
 		register,
 		handleSubmit,
@@ -69,6 +88,9 @@ const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 	const [userOptions, setUserOptions] = useState<{ label: string; value: number }[]>([]);
 	const [workSummary, setWorkSummary] = useState<CompOffWorkSummary | null>(null);
 	const [workSummaryLoading, setWorkSummaryLoading] = useState(false);
+	const [{ month: summaryMonth, year: summaryYear }, setSummaryPeriod] = useState(
+		getCurrentSummaryPeriod,
+	);
 	const { showErrorNotification } = useToasterNotification();
 	const showErrorRef = useRef(showErrorNotification);
 	showErrorRef.current = showErrorNotification;
@@ -151,6 +173,7 @@ const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		if (!isOpen) {
 			setWorkSummary(null);
 			setWorkSummaryLoading(false);
+			setSummaryPeriod(getCurrentSummaryPeriod());
 			return undefined;
 		}
 
@@ -165,18 +188,23 @@ const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		setWorkSummaryLoading(true);
 
 		authAxios
-			.get('/api/hr/comp-off-work-summary/', { params: { user: userId } })
+			.get('/api/hr/comp-off-work-summary/', {
+				params: {
+					user: userId,
+					month: summaryMonth,
+					year: summaryYear,
+				},
+			})
 			.then((res) => {
 				if (cancelled) return;
 				const data = res?.data ?? {};
-				setWorkSummary({
-					ot_mins_total:
-						data.ot_mins_total != null ? Number(data.ot_mins_total) : null,
-					extra_worked_mins_total:
-						data.extra_worked_mins_total != null
-							? Number(data.extra_worked_mins_total)
-							: null,
-				});
+				setWorkSummary(parseWorkSummary(data));
+				if (data?.month != null && data?.year != null) {
+					setSummaryPeriod({
+						month: Number(data.month),
+						year: Number(data.year),
+					});
+				}
 			})
 			.catch((err) => {
 				if (!cancelled) {
@@ -191,7 +219,25 @@ const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		return () => {
 			cancelled = true;
 		};
-	}, [isOpen, selectedUserId]);
+	}, [isOpen, selectedUserId, summaryMonth, summaryYear]);
+
+	const handleSummaryMonthChange = (month: number) => {
+		setSummaryPeriod((prev) => ({ ...prev, month }));
+	};
+
+	const handleSummaryYearChange = (year: number) => {
+		setSummaryPeriod((prev) => ({ ...prev, year }));
+	};
+
+	const handleUserChangeResetPeriod = () => {
+		setSummaryPeriod(getCurrentSummaryPeriod());
+	};
+
+	useEffect(() => {
+		if (!isOpen || selectedUserId == null) return;
+		handleUserChangeResetPeriod();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedUserId]);
 
 	const onSubmit = (data: CompOffCreditFormValues) => {
 		setWaitingForAxios(true);
@@ -228,6 +274,11 @@ const AddCompOffCredit = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 									getValues={getValues}
 									errors={errors}
 									userOptions={userOptions}
+									selectedUserId={selectedUserId}
+									summaryMonth={summaryMonth}
+									summaryYear={summaryYear}
+									onSummaryMonthChange={handleSummaryMonthChange}
+									onSummaryYearChange={handleSummaryYearChange}
 									workSummary={workSummary}
 									workSummaryLoading={workSummaryLoading}
 								/>

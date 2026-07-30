@@ -137,13 +137,15 @@ const WfhRequests = ({
 			filtering: false,
 			render: (rowData: any) => (
 				<div className='d-flex flex-row flex-nowrap gap-1 justify-content-end align-items-center'>
-					<WfhRequestActionButtons
-						id={rowData.id}
-						tableRef={tableRef}
-						canApprove={rowData?.actions?.can_approve}
-						canReject={rowData?.actions?.can_reject}
-						canCancel={rowData?.actions?.can_cancel}
-					/>
+					{!isSelfMode ? (
+						<WfhRequestActionButtons
+							id={rowData.id}
+							tableRef={tableRef}
+							canApprove={rowData?.actions?.can_approve}
+							canReject={rowData?.actions?.can_reject}
+							canCancel={rowData?.actions?.can_cancel}
+						/>
+					) : null}
 					<Tooltip arrow title='View approval status' placement='top'>
 						<Button
 							type='button'
@@ -164,7 +166,7 @@ const WfhRequests = ({
 			),
 		};
 		return [...staticColumns, actionColumn];
-	}, [staticColumns, showEditWfhRequest, tableRef, editModalToggle, openApprovalTimeline]);
+	}, [staticColumns, isSelfMode, showEditWfhRequest, tableRef, editModalToggle, openApprovalTimeline]);
 
 	const tableActions = useMemo(
 		() => [

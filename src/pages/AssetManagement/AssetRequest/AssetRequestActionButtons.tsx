@@ -19,6 +19,7 @@ type AssetRequestActionButtonsProps = {
 	canApprove?: boolean;
 	canReject?: boolean;
 	canCancel?: boolean;
+	canReturn?: boolean;
 };
 
 const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
@@ -29,12 +30,14 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 	canApprove,
 	canReject,
 	canCancel,
+	canReturn,
 }) => {
 	const showApprove = Boolean(canApprove);
 	const showReject = Boolean(canReject);
 	const showCancel = Boolean(canCancel);
+	const showReturn = Boolean(canReturn);
 
-	if (!showApprove && !showReject && !showCancel) {
+	if (!showApprove && !showReject && !showCancel && !showReturn) {
 		return null;
 	}
 
@@ -50,6 +53,8 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 			confirmButtonText: label,
 			cancelButtonText: 'Close',
 			showLoaderOnConfirm: true,
+			allowOutsideClick: () => !Swal.isLoading(),
+			heightAuto: false,
 			preConfirm: async () => {
 				try {
 					const url =
@@ -57,8 +62,11 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 							? assetRequestItemActionUrl(id, itemId, action)
 							: assetRequestActionUrl(id, action);
 					const response = await authAxios.post(url);
-					tableRef?.current?.onQueryChange?.();
-					onActionSuccess?.();
+					if (onActionSuccess) {
+						onActionSuccess();
+					} else {
+						tableRef?.current?.onQueryChange?.();
+					}
 					return response.data;
 				} catch (error) {
 					const apiMessage = extractApiErrorMessage(error);
@@ -106,6 +114,18 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 					icon='Cancel'
 					onClick={() => runAction('Cancel', 0, 'cancel')}>
 					Cancel
+				</Button>
+			)}
+			{showReturn && (
+				<Button
+					isOutline={false}
+					color='info'
+					isLight
+					size='sm'
+					className={classNames('text-nowrap', { 'border-light': false })}
+					icon='AssignmentReturn'
+					onClick={() => runAction('Return', 3, 'return')}>
+					Return
 				</Button>
 			)}
 		</div>

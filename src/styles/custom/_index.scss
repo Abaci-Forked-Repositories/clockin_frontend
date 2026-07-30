@@ -1650,6 +1650,7 @@ overflow-x: hidden;
 	}
 
 	&__clocked-user-trigger {
+		position: relative;
 		display: inline-flex;
 		cursor: pointer;
 		border-radius: 50%;
@@ -1658,6 +1659,25 @@ overflow-x: hidden;
 		&:hover {
 			transform: scale(1.06);
 			box-shadow: 0 2px 8px rgba(var(--bs-warning-rgb), 0.35);
+		}
+	}
+
+	&__clocked-user-status {
+		position: absolute;
+		right: 1px;
+		bottom: 1px;
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 50%;
+		border: 1.5px solid var(--bs-card-bg, #fff);
+		box-sizing: border-box;
+
+		&--in {
+			background: var(--bs-success);
+		}
+
+		&--out {
+			background: var(--bs-danger);
 		}
 	}
 

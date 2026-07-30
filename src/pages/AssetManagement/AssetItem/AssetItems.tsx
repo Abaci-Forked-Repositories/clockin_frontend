@@ -1,14 +1,23 @@
 import React, { useMemo, useRef, useState } from 'react';
 import MaterialTable from '@material-table/core';
 import { ThemeProvider } from '@mui/material/styles';
+import { Tooltip } from '@mui/material';
 import PropTypes from 'prop-types';
+import Swal from 'sweetalert2';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { authAxios } from '../../../axiosInstance';
 import useTablestyle from '../../../hooks/useTablestyles';
 import { formatFilters } from '../../../helpers/functions';
 import useToasterNotification from '../../../hooks/useToasterNotification';
+import { buttonColor } from '../../../helpers/constants';
+import { extractApiErrorMessage } from '../../../hooks/useErrorHandler';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
+import Button from '../../../components/bootstrap/Button';
+import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
+import AssetItemMovementsModal, {
+	type AssetItemMovementsContext,
+} from './AssetItemMovementsModal';
 
 type AssetItemsProps = {
 	tableRef: React.MutableRefObject<any>;
@@ -34,13 +43,74 @@ const isConsumableRow = (rowData: any) =>
 			: rowData?.is_consumable,
 	);
 
+const isReturnableAssetStatus = (rowData: any) => {
+	const status = String(rowData?.status || '')
+		.trim()
+		.toUpperCase();
+	return status === 'ASSIGNED' || status === 'IN_USE';
+};
+
+const canReturnAssetRow = (rowData: any) =>
+	isReturnableAssetStatus(rowData) && !isConsumableRow(rowData);
+
 const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 	const urlBackup = useRef('');
 	const [filterEnabled, setFilterEnabled] = useState(false);
 	const [pageSize, setPageSize] = useState(5);
 	const [sortState, setSortState] = useState({ orderBy: null, orderDirection: 'asc' });
+	const [movementsModalOpen, setMovementsModalOpen] = useState(false);
+	const [movementsContext, setMovementsContext] = useState<AssetItemMovementsContext | null>(
+		null,
+	);
 	const { theme, rowStyles, headerStyles } = useTablestyle();
 	const { showErrorNotification } = useToasterNotification();
+
+	const openMovementsModal = (rowData: any) => {
+		setMovementsContext({
+			assetId: rowData?.id,
+			assetName: rowData?.name,
+			assetCode: rowData?.asset_code,
+		});
+		setMovementsModalOpen(true);
+	};
+
+	const handleReturnAsset = (rowData: any) => {
+		const assetName = rowData?.name || rowData?.asset_code || `Asset ${rowData?.id}`;
+		Swal.fire({
+			title: 'Return asset?',
+			icon: 'question',
+			text: `Return “${assetName}” to available inventory.`,
+			showCancelButton: true,
+			iconColor: buttonColor[4],
+			confirmButtonColor: buttonColor[3],
+			cancelButtonColor: buttonColor[0],
+			confirmButtonText: 'Return',
+			cancelButtonText: 'Close',
+			showLoaderOnConfirm: true,
+			allowOutsideClick: () => !Swal.isLoading(),
+			heightAuto: false,
+			preConfirm: async () => {
+				try {
+					const response = await authAxios.patch(
+						`/api/hr/asset-items/${rowData.id}/`,
+						{ status: 'RETURNED' },
+					);
+					return response.data;
+				} catch (error) {
+					const apiMessage = extractApiErrorMessage(error);
+					Swal.showValidationMessage(
+						apiMessage
+							? `Request failed: ${apiMessage}`
+							: 'Request failed. Please try again.',
+					);
+				}
+			},
+		}).then((result) => {
+			if (result.isConfirmed) {
+				tableRef?.current?.onQueryChange?.();
+			}
+		});
+	};
 
 	const staticColumns = useMemo(
 		() => [
@@ -72,12 +142,26 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 				sorting: false,
 				render: (rowData: any) => resolveRelatedName(rowData?.site, rowData?.site_name),
 			},
-			{
-				title: 'Status',
-				field: 'status',
-				render: (rowData: any) =>
-					rowData?.status_display || rowData?.status || '----',
+		{
+			title: 'Status',
+			field: 'status',
+			lookup: {
+				AVAILABLE: 'Available',
+				ASSIGNED: 'Assigned',
+				IN_USE: 'In Use',
+				MAINTENANCE: 'Under Maintenance',
+				DAMAGED: 'Damaged',
+				LOST: 'Lost',
+				DISPOSED: 'Disposed',
 			},
+			render: (rowData: any) => (
+				<StatusBadge
+					status={rowData?.status}
+					label={rowData?.status_display}
+					emptyFallback='----'
+				/>
+			),
+		},
 			{
 				title: 'Assigned to',
 				field: 'assigned_to',
@@ -107,7 +191,32 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 			grouping: false,
 			filtering: false,
 			render: (rowData: any) => (
-				<div className='d-flex gap-1 justify-content-end'>
+				<div className='d-flex gap-1 justify-content-end align-items-center'>
+					<Tooltip arrow title='View assignment' placement='top'>
+						<Button
+							type='button'
+							color='warning'
+							isLight
+							size='sm'
+							icon='Visibility'
+							onClick={(e: React.MouseEvent) => {
+								e.stopPropagation();
+								openMovementsModal(rowData);
+							}}
+						/>
+					</Tooltip>
+					{canReturnAssetRow(rowData) ? (
+						<Button
+							isOutline={false}
+							isLight
+							size='sm'
+							color='info'
+							className='text-nowrap'
+							icon='AssignmentReturn'
+							onClick={() => handleReturnAsset(rowData)}>
+							Return
+						</Button>
+					) : null}
 					<EditButton modalShow={editModalToggle} id={rowData.id} />
 				</div>
 			),
@@ -121,7 +230,13 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 	);
 
 	return (
-		<Card stretch>
+		<>
+			<AssetItemMovementsModal
+				isOpen={movementsModalOpen}
+				setIsOpen={setMovementsModalOpen}
+				context={movementsContext}
+			/>
+			<Card stretch>
 			<CardBody>
 				<div className='material-table-wrapper'>
 					<ThemeProvider theme={theme}>
@@ -198,6 +313,7 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 				</div>
 			</CardBody>
 		</Card>
+		</>
 	);
 };
 

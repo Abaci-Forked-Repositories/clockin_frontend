@@ -7,7 +7,7 @@ export const ASSET_REQUEST_STATUS_LOOKUP: Record<string, string> = {
 	CANCELLED: 'Cancelled',
 };
 
-export type AssetRequestAction = 'approve' | 'reject' | 'cancel';
+export type AssetRequestAction = 'approve' | 'reject' | 'cancel' | 'return';
 
 export const assetRequestActionUrl = (
 	id: number | string,
@@ -27,6 +27,8 @@ export type AssetRequestItemActions = {
 	can_approve?: boolean;
 	can_reject?: boolean;
 	can_cancel?: boolean;
+	can_assign_item?: boolean;
+	can_return?: boolean;
 };
 
 export type AssetRequestDetailItem = {

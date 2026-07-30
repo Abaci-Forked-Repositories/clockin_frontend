@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Form } from 'reactstrap';
 import { useForm } from 'react-hook-form';
@@ -51,6 +51,8 @@ const AddAssetType = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 	const [waitingForAxios, setWaitingForAxios] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const { showErrorNotification } = useToasterNotification();
+	const showErrorRef = useRef(showErrorNotification);
+	showErrorRef.current = showErrorNotification;
 	const isEdit = Boolean(id);
 
 	useEffect(() => {
@@ -79,7 +81,7 @@ const AddAssetType = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 				});
 			})
 			.catch((err) => {
-				if (!cancelled) showErrorNotification(err);
+				if (!cancelled) showErrorRef.current(err);
 			})
 			.finally(() => {
 				if (!cancelled) setIsLoading(false);
@@ -88,7 +90,8 @@ const AddAssetType = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		return () => {
 			cancelled = true;
 		};
-	}, [id, isEdit, isOpen, reset, showErrorNotification]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isOpen, id, isEdit]);
 
 	const onSubmit = (data: AssetTypeFormValues) => {
 		setWaitingForAxios(true);

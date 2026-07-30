@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { authAxios } from '../../../axiosInstance';
 import useTablestyle from '../../../hooks/useTablestyles';
-import { formatFilters } from '../../../helpers/functions';
+import { formatFilters, resolveTableRowUserId, userDetailsPath } from '../../../helpers/functions';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../../contexts/authContext';
@@ -171,7 +171,10 @@ const UserManagementTableComponent = (props) => {
 					columns={columns}
 					tableRef={tableRef}
 					onChangeRowsPerPage={setPageSize}
-					onRowClick={(event, rowData)=>navigate(`/user-details/${rowData.id}`)}
+					onRowClick={(_event, rowData) => {
+						const userId = resolveTableRowUserId(rowData);
+						if (userId != null) navigate(userDetailsPath(userId));
+					}}
 					onOrderChange={(orderBy, orderDirection) => {
 						setSortState({ orderBy, orderDirection });
 					}}
@@ -224,7 +227,10 @@ const UserManagementTableComponent = (props) => {
 					]}
 					options={{
 						headerStyle: headerStyles(),
-						rowStyle: rowStyles(),
+						rowStyle: () => ({
+							...rowStyles(),
+							cursor: 'pointer',
+						}),
 						actionsColumnIndex: -1,
 						debounceInterval: 500,
 						filtering: filterEnabled,

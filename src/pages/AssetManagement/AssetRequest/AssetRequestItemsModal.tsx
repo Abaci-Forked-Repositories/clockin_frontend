@@ -6,6 +6,7 @@ import { authAxios } from '../../../axiosInstance';
 import useDarkMode from '../../../hooks/useDarkMode';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import AssetRequestActionButtons from './AssetRequestActionButtons';
+import AssetRequestAssignItemControl from './AssetRequestAssignItemControl';
 import {
 	assetRequestDetailUrl,
 	assetRequestItemLabel,
@@ -25,6 +26,8 @@ type AssetRequestItemsModalProps = {
 	setIsOpen: (open: boolean) => void;
 	context: AssetRequestItemsModalContext | null;
 	tableRef?: React.MutableRefObject<any> | null;
+	/** When false (e.g. Self mode), hide assign / approve / reject / cancel / return. */
+	showItemActions?: boolean;
 };
 
 const labelStyle = (muted: string) => ({
@@ -41,6 +44,7 @@ const AssetRequestItemsModal = ({
 	setIsOpen,
 	context,
 	tableRef = null,
+	showItemActions = true,
 }: AssetRequestItemsModalProps) => {
 	const { darkModeStatus } = useDarkMode();
 	const { showErrorNotification } = useToasterNotification();
@@ -105,14 +109,15 @@ const AssetRequestItemsModal = ({
 	const description = detail?.description || context?.description || '';
 
 	const refreshAfterAction = () => {
-		tableRef?.current?.onQueryChange?.();
 		setReloadKey((prev) => prev + 1);
+		tableRef?.current?.onQueryChange?.();
 	};
 
 	return (
 		<Modal
 			isOpen={isOpen}
 			setIsOpen={setIsOpen}
+			isStaticBackdrop
 			isAnimation={false}
 			isCentered
 			isScrollable
@@ -129,9 +134,9 @@ const AssetRequestItemsModal = ({
 							backgroundColor: surface,
 							border: `1px solid ${border}`,
 						}}>
-						<div className='row g-4'>
+						<div className='row g-4 align-items-start'>
 							{description ? (
-								<div className='col-sm-8'>
+								<div className='col'>
 									<div style={labelStyle(textSubtle)}>Description</div>
 									<div style={{ color: textPrimary, fontSize: '1rem', fontWeight: 600 }}>
 										{description}
@@ -139,20 +144,23 @@ const AssetRequestItemsModal = ({
 								</div>
 							) : null}
 							{overallStatusCode ? (
-								<div className={description ? 'col-sm-4' : 'col-12'}>
+								<div
+									className={description ? 'col-auto ms-auto text-end' : 'col-12 text-end'}>
 									<div style={labelStyle(textSubtle)}>Request status</div>
-									<StatusBadge
-										status={overallStatusCode}
-										label={overallStatusLabel}
-										emptyFallback='----'
-									/>
+									<div className='d-flex justify-content-end'>
+										<StatusBadge
+											status={overallStatusCode}
+											label={overallStatusLabel}
+											emptyFallback='----'
+										/>
+									</div>
 								</div>
 							) : null}
 						</div>
 					</div>
 				)}
 
-				{loading ? (
+				{loading && items.length === 0 ? (
 					<div className='d-flex justify-content-center py-5'>
 						<CustomSpinner />
 					</div>
@@ -161,7 +169,19 @@ const AssetRequestItemsModal = ({
 						No requested items found.
 					</p>
 				) : (
-					<div className='d-flex flex-column' style={{ gap: 16 }}>
+					<div className='d-flex flex-column position-relative' style={{ gap: 16 }}>
+						{loading ? (
+							<div
+								className='position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded-3'
+								style={{
+									backgroundColor: darkModeStatus
+										? 'rgba(0,0,0,0.35)'
+										: 'rgba(255,255,255,0.7)',
+									zIndex: 2,
+								}}>
+								<CustomSpinner />
+							</div>
+						) : null}
 						<div style={labelStyle(textSubtle)}>Requested items</div>
 						{items.map((item, index) => {
 							const qty = item?.qty ?? item?.quantity_requested;
@@ -240,23 +260,86 @@ const AssetRequestItemsModal = ({
 										</div>
 									) : null}
 
-									{(item?.actions?.can_approve ||
-										item?.actions?.can_reject ||
-										item?.actions?.can_cancel) &&
-									requestId != null &&
-									item?.id != null ? (
-										<div className='d-flex justify-content-end'>
-											<AssetRequestActionButtons
-												id={requestId}
-												itemId={item.id}
-												tableRef={tableRef}
-												onActionSuccess={refreshAfterAction}
-												canApprove={item.actions?.can_approve}
-												canReject={item.actions?.can_reject}
-												canCancel={item.actions?.can_cancel}
-											/>
-										</div>
-									) : null}
+									{(() => {
+										if (!showItemActions) return null;
+
+										const actions = item?.actions;
+										const canAssignItem = Boolean(actions?.can_assign_item);
+										const canApprove =
+											Boolean(actions?.can_approve) && !canAssignItem;
+										const canReject = Boolean(actions?.can_reject);
+										const canCancel = Boolean(actions?.can_cancel);
+										const itemStatus = String(item?.status || '')
+											.trim()
+											.toUpperCase();
+										const assetItemStatus = String(
+											(typeof item?.asset_item === 'object' &&
+												item.asset_item != null
+												? item.asset_item.status
+												: '') || '',
+										)
+											.trim()
+											.toUpperCase();
+										const hasAssetItem =
+											(typeof item?.asset_item === 'object' &&
+												item.asset_item != null &&
+												item.asset_item.id != null) ||
+											(item?.asset_item != null && item?.asset_item !== '');
+										const isConsumable = Boolean(
+											typeof item?.asset_type === 'object' &&
+											item.asset_type != null
+												? item.asset_type.is_consumable
+												: false,
+										);
+										const canReturn =
+											!isConsumable &&
+											hasAssetItem &&
+											(itemStatus === 'ASSIGNED' ||
+												itemStatus === 'APPROVED' ||
+												assetItemStatus === 'ASSIGNED');
+										const hasActions =
+											canApprove ||
+											canReject ||
+											canCancel ||
+											canAssignItem ||
+											canReturn;
+										if (!hasActions || requestId == null || item?.id == null) {
+											return null;
+										}
+
+										const assetTypeId =
+											typeof item?.asset_type === 'object' &&
+											item.asset_type != null
+												? item.asset_type.id
+												: item?.asset_type;
+
+										return (
+											<div className='d-flex flex-column gap-3'>
+												{canAssignItem ? (
+													<AssetRequestAssignItemControl
+														requestId={requestId}
+														itemId={item.id}
+														assetTypeId={assetTypeId ?? null}
+														onAssigned={refreshAfterAction}
+													/>
+												) : null}
+												{(canApprove || canReject || canCancel || canReturn) && (
+													<div className='d-flex justify-content-end'>
+														<AssetRequestActionButtons
+															id={requestId}
+															itemId={item.id}
+															tableRef={tableRef}
+															onActionSuccess={refreshAfterAction}
+															canApprove={canApprove}
+															canReject={canReject}
+															canCancel={canCancel}
+															canReturn={canReturn}
+														/>
+													</div>
+												)}
+											</div>
+										);
+									})()}
 								</div>
 							);
 						})}

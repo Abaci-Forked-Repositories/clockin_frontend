@@ -217,6 +217,7 @@ const AssetRequests = ({
 				setIsOpen={setItemsModalOpen}
 				context={itemsModalContext}
 				tableRef={tableRef}
+				showItemActions={!isSelfMode}
 			/>
 			<AssetRequestCommentsModal
 				isOpen={commentsOpen}
