@@ -9,7 +9,7 @@ import { formatFilters, resolveTableRowUserId, userDetailsPath } from '../../../
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../../contexts/authContext';
-import { resolveTenantRouteRole } from '../../../helpers/roleToggleUtils';
+import { isPrivilegedToggleMode, resolveTenantRouteRole } from '../../../helpers/roleToggleUtils';
 import { useSelector } from 'react-redux';
 import EditButton from '../../CustomComponent/Buttons/EditButton';
 import ImageCell from '../../CustomComponent/Imagecell';
@@ -26,8 +26,8 @@ const UserManagementTableComponent = (props) => {
 	const { showErrorNotification } = useToasterNotification();
 	const { userData } = useContext(AuthContext);
 	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
-	const mode = accountToggle || 'Admin';
-	const canEditUser = resolveTenantRouteRole(userData) === 'Admin' && mode === 'Admin';
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
+	const canShowUserActions = isPrivilegedToggleMode(userData, mode);
 	const navigate = useNavigate();
 
 
@@ -139,7 +139,7 @@ const UserManagementTableComponent = (props) => {
 		},
 	];
 
-	const actionButtons = canEditUser ? [
+	const actionButtons = canShowUserActions ? [
 		{
 			title: 'Actions',
 			align: 'right',
@@ -157,7 +157,7 @@ const UserManagementTableComponent = (props) => {
 
 	const columns = useMemo(() => {
 		return [...staticColumns, ...actionButtons];
-	}, [canEditUser]);
+	}, [canShowUserActions]);
 
 
 	

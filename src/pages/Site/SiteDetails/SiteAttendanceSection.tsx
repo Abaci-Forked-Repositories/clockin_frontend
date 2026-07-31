@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
 import dayjs from 'dayjs';
 import MaterialTable from '@material-table/core';
@@ -17,6 +18,7 @@ import AbaciLoader from '../../../components/AbaciLoader/AbaciLoader';
 import { authAxios } from '../../../axiosInstance';
 import useTablestyle from '../../../hooks/useTablestyles';
 import useToasterNotification from '../../../hooks/useToasterNotification';
+import { resolveTableRowUserId, userDetailsPath } from '../../../helpers/functions';
 import { getAttendanceStatusMeta } from '../../Attendance/attendanceStatusUtils';
 import {
 	DASHBOARD_ATTENDANCE_THEME,
@@ -112,6 +114,7 @@ const SiteAttendanceSection = ({ siteId, site, siteName }: SiteAttendanceSection
 	const tableRef = useRef<any>(null);
 	const { theme, rowStyles, headerStyles } = useTablestyle();
 	const { showErrorNotification } = useToasterNotification();
+	const navigate = useNavigate();
 	const showErrorRef = useRef(showErrorNotification);
 	showErrorRef.current = showErrorNotification;
 
@@ -361,6 +364,10 @@ const SiteAttendanceSection = ({ siteId, site, siteName }: SiteAttendanceSection
 								title=' '
 								columns={columns as any}
 								tableRef={tableRef}
+								onRowClick={(_event, rowData: any) => {
+									const userId = resolveTableRowUserId(rowData);
+									if (userId != null) navigate(userDetailsPath(userId));
+								}}
 								data={(query) =>
 									new Promise((resolve, reject) => {
 										const params: Record<string, string | number> = {
@@ -409,7 +416,10 @@ const SiteAttendanceSection = ({ siteId, site, siteName }: SiteAttendanceSection
 								}
 								options={{
 									headerStyle: headerStyles(),
-									rowStyle: rowStyles(),
+									rowStyle: () => ({
+										...rowStyles(),
+										cursor: 'pointer',
+									}),
 									debounceInterval: 300,
 									filtering: false,
 									search: false,

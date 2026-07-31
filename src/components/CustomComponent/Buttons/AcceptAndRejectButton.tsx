@@ -4,6 +4,8 @@ import classNames from 'classnames';
 import Button from '../../bootstrap/Button'; // Adjust the import according to your setup
 import { authAxios } from '../../../axiosInstance';
 import { buttonColor } from '../../../helpers/constants';
+import { extractApiErrorMessage } from '../../../hooks/useErrorHandler';
+import { leaveRequestActionUrl } from '../../../pages/LeaveManagement/LeaveRequest/leaveRequestUtils';
 
 
 interface AcceptAndRejectButtonProps {
@@ -42,12 +44,26 @@ const AcceptAndRejectButton: React.FC<AcceptAndRejectButtonProps> = ({id,tableRe
         showLoaderOnConfirm: true,
         preConfirm: async (value) => {
           try {
+            const trimmed = value?.trim?.() ?? '';
+            const isLeaveRequest = String(url || '').includes('leave-requests');
+            if (isLeaveRequest) {
+              const action = type === 'Accept' ? 'approve' : 'reject';
+              const response = await authAxios.post(
+                leaveRequestActionUrl(id, action),
+                trimmed ? { response_text: trimmed } : {},
+              );
+              tableRef?.current?.onQueryChange?.();
+              return response.data;
+            }
             const githubUrl = `${url}/${id}`;
-            const response = await authAxios.patch(githubUrl,{response_text:value,status:`${type.toUpperCase()}ED`}); // Using Axios
-            tableRef.current.onQueryChange();
+            const response = await authAxios.patch(githubUrl,{response_text:value,status:`${type.toUpperCase()}ED`});
+            tableRef?.current?.onQueryChange?.();
             return response.data;
           } catch (error) {
-            Swal.showValidationMessage(`Request failed: ${error.message}`);
+            const apiMessage = extractApiErrorMessage(error);
+            Swal.showValidationMessage(
+              apiMessage ? `Request failed: ${apiMessage}` : `Request failed: ${error.message}`,
+            );
           }
         },
         

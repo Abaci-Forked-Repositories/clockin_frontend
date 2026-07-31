@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authAxios } from '../axiosInstance';
 import { setLogOut as setAuthLogOut } from '../store/auth';
-import { getDefaultAuthPath } from '../helpers/baseURL';
+import { getLoginAuthPath } from '../helpers/baseURL';
 
 
 export interface IAuthContextProps {
@@ -54,7 +54,7 @@ const setLogOut = () => {
     } else if (isPlatformPartnerUser) {
       navigate('/clockin-partner/login');
     } else {
-      navigate(getDefaultAuthPath());
+      navigate(getLoginAuthPath());
     }
     setUser('');
     setUserData({});
@@ -76,7 +76,7 @@ const setLogOut = () => {
           setUser('');
           setUserData({});
           if (!isPublicAuthPath(location.pathname)) {
-            navigate(getDefaultAuthPath());
+            navigate(getLoginAuthPath());
           }
           return;
         }

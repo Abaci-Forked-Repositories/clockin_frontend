@@ -86,6 +86,19 @@ const ReusableScheduleCalendar = ({
 	const isAttendanceDayRow = (record: any) =>
 		record?.date != null && (typeof record.date === 'string' || typeof record.date === 'number');
 
+	/** Parse API `YYYY-MM-DD` as a local calendar day (avoids UTC off-by-one). */
+	const parseLocalCalendarDay = (raw: unknown): Dayjs => {
+		const s = String(raw ?? '')
+			.trim()
+			.slice(0, 10);
+		if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+			const [y, m, d] = s.split('-').map(Number);
+			return dayjs(new Date(y, m - 1, d));
+		}
+		const parsed = dayjs(raw as any);
+		return parsed.isValid() ? parsed.startOf('day') : parsed;
+	};
+
 	const isMatchingUser = (record: any) => {
 		if (!resolvedEntityId) return true;
 		if (isAttendanceDayRow(record)) return true;
@@ -521,7 +534,7 @@ const ReusableScheduleCalendar = ({
 			if (!isMatchingUser(row)) return;
 
 			if (isAttendanceDayRow(row)) {
-				const d = dayjs(row.date).startOf('day');
+				const d = parseLocalCalendarDay(row.date);
 				if (!d.isValid()) return;
 				if (d.isBefore(monthBounds.start, 'day') || d.isAfter(monthBounds.end, 'day')) return;
 				pushEventsForTab(events, row, d, ct, effectiveTab);

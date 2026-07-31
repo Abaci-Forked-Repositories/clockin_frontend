@@ -224,7 +224,10 @@ const formatSpecialDayLines = (sd: unknown): string[] => {
 
 const toYmd = (d: Date | null) => {
 	if (!d) return '';
-	return dayjs(d).format('YYYY-MM-DD');
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${y}-${m}-${day}`;
 };
 
 const isOtAttendanceKey = (key: string) => /(^|_)(ot|overtime)($|_)/i.test(key);
@@ -419,11 +422,19 @@ const UserCalendarDetailModal = ({
 }: UserCalendarDetailModalProps) => {
 	const dateLabel = useMemo(() => {
 		if (!selectedDate) return '—';
-		return dayjs(selectedDate).format('dddd, MMMM D, YYYY');
+		const local = new Date(
+			selectedDate.getFullYear(),
+			selectedDate.getMonth(),
+			selectedDate.getDate(),
+		);
+		return dayjs(local).format('dddd, MMMM D, YYYY');
 	}, [selectedDate]);
 
 	const { userData } = useContext(AuthContext);
-	const apiDate = detail?.date != null ? String(detail.date).slice(0, 10) : toYmd(selectedDate);
+	// Prefer the clicked calendar day over API `detail.date` (can be UTC-shifted).
+	const apiDate =
+		toYmd(selectedDate) ||
+		(detail?.date != null ? String(detail.date).slice(0, 10) : '');
 	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
 	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
 	const isAdmin = resolveTenantRouteRole(userData) === 'Admin' && mode === 'Admin';

@@ -5,6 +5,10 @@ import Button from '../../bootstrap/Button'; // Adjust the import according to y
 import { authAxios } from '../../../axiosInstance';
 import { buttonColor } from '../../../helpers/constants';
 import { extractApiErrorMessage } from '../../../hooks/useErrorHandler';
+import {
+	leaveRequestActionUrl,
+	type LeaveRequestAction,
+} from '../../../pages/LeaveManagement/LeaveRequest/leaveRequestUtils';
 
 
 interface AcceptAndRejectButtonProps {
@@ -52,6 +56,11 @@ const AcceptandRejectBasedOnStatus: React.FC<AcceptAndRejectButtonProps> = ({
 	}
 
   const onclickHandler = (nextStatus: 'APPROVED' | 'REJECTED' | 'CANCELLED') => {
+	const actionByStatus: Record<typeof nextStatus, LeaveRequestAction> = {
+		APPROVED: 'approve',
+		REJECTED: 'reject',
+		CANCELLED: 'cancel',
+	};
 
     Swal.fire({
         title: 'Are you sure?',
@@ -71,9 +80,12 @@ const AcceptandRejectBasedOnStatus: React.FC<AcceptAndRejectButtonProps> = ({
         showLoaderOnConfirm: true,
         preConfirm: async (value) => {
           try {
-            const githubUrl = `${url}/${id}/`;
-            const response = await authAxios.patch(githubUrl,{response_text:value,status: nextStatus}); // Using Axios
-            tableRef.current.onQueryChange();
+            const actionUrl = leaveRequestActionUrl(id, actionByStatus[nextStatus]);
+            const response = await authAxios.post(
+				actionUrl,
+				value?.trim() ? { response_text: value.trim() } : {},
+			);
+            tableRef?.current?.onQueryChange?.();
             return response.data;
           } catch (error) {
             const apiMessage = extractApiErrorMessage(error);

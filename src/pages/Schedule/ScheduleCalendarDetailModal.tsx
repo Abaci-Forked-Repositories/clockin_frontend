@@ -254,14 +254,22 @@ const ScheduleCalendarDetailModal = ({
 	loading = false,
 	onChanged,
 }: ScheduleCalendarDetailModalProps) => {
-	const dateLabel = useMemo(
-		() => (selectedDate ? dayjs(selectedDate).format('dddd, MMMM D, YYYY') : '—'),
-		[selectedDate],
-	);
-	const apiDate = useMemo(
-		() => (selectedDate ? dayjs(selectedDate).format('YYYY-MM-DD') : ''),
-		[selectedDate],
-	);
+	const dateLabel = useMemo(() => {
+		if (!selectedDate) return '—';
+		const local = new Date(
+			selectedDate.getFullYear(),
+			selectedDate.getMonth(),
+			selectedDate.getDate(),
+		);
+		return dayjs(local).format('dddd, MMMM D, YYYY');
+	}, [selectedDate]);
+	const apiDate = useMemo(() => {
+		if (!selectedDate) return '';
+		const y = selectedDate.getFullYear();
+		const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+		const day = String(selectedDate.getDate()).padStart(2, '0');
+		return `${y}-${m}-${day}`;
+	}, [selectedDate]);
 
 	const { showErrorNotification, showSuccessNotification } = useToasterNotification();
 	const reactSelectStyle = useSelectStyles(false);

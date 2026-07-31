@@ -5,13 +5,13 @@ import Card, { CardBody, CardHeader, CardLabel, CardTitle } from '../../componen
 const GROUP_DETAIL_CARD_HEIGHT_PX = 420;
 
 const DetailRow = ({ label, value }: { label: string; value?: React.ReactNode }) => (
-	<div className='py-2 border-bottom'>
+	<div className='py-1 border-bottom' style={{ paddingTop: '0.4rem', paddingBottom: '0.4rem' }}>
 		<div
 			className='text-muted small text-uppercase fw-semibold'
-			style={{ fontSize: '0.8rem', letterSpacing: '0.02em' }}>
+			style={{ fontSize: '0.75rem', letterSpacing: '0.02em', lineHeight: 1.25 }}>
 			{label}
 		</div>
-		<div className='fs-6 fw-semibold mt-1' style={{ wordBreak: 'break-word' }}>
+		<div className='fw-semibold mt-1' style={{ fontSize: '0.95rem', wordBreak: 'break-word', lineHeight: 1.4 }}>
 			{value != null && value !== '' ? value : '—'}
 		</div>
 	</div>
@@ -77,15 +77,15 @@ const GroupDetails = ({ group }: { group: any | null }) => {
 					height: GROUP_DETAIL_CARD_HEIGHT_PX,
 					maxHeight: GROUP_DETAIL_CARD_HEIGHT_PX,
 				}}>
-				<CardHeader className='flex-shrink-0'>
+				<CardHeader className='flex-shrink-0 py-2'>
 					<CardLabel icon='Info' iconColor='warning'>
-						<CardTitle tag='div' className='h5 text-warning'>
+						<CardTitle tag='div' className='h5 text-warning mb-0'>
 							{group?.name || 'Group'}
 						</CardTitle>
 					</CardLabel>
 				</CardHeader>
 				<CardBody
-					className='flex-grow-1 pt-0 overflow-auto d-flex flex-column'
+					className='flex-grow-1 pt-0 pb-2 overflow-auto d-flex flex-column'
 					style={{ minHeight: 0 }}>
 					<DetailRow label='Type' value={group?.type} />
 					<DetailRow

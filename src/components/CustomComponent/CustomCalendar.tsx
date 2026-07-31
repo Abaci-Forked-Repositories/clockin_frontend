@@ -46,12 +46,10 @@ const CustomCalendar = ({
 	const emitDateClick = (rawDate: Date) => {
 		if (!rawDate || Number.isNaN(rawDate.getTime())) return;
 		const normalized = new Date(rawDate.getFullYear(), rawDate.getMonth(), rawDate.getDate());
-		const key = dayjs(normalized).format('YYYY-MM-DD');
+		const key = `${normalized.getFullYear()}-${String(normalized.getMonth() + 1).padStart(2, '0')}-${String(normalized.getDate()).padStart(2, '0')}`;
 		const now = Date.now();
-		if (
-			lastDateClickRef.current?.key === key &&
-			now - lastDateClickRef.current.at < 250
-		) {
+		// RBC often fires both dateCellWrapper + onSelectSlot for one click; keep the first date only.
+		if (lastDateClickRef.current && now - lastDateClickRef.current.at < 300) {
 			return;
 		}
 		lastDateClickRef.current = { key, at: now };
@@ -64,6 +62,7 @@ const CustomCalendar = ({
 		const originalOnClick = (children.props as any)?.onClick;
 		return React.cloneElement(children as React.ReactElement<any>, {
 			onClick: (event: any) => {
+				event?.stopPropagation?.();
 				originalOnClick?.(event);
 				if (value) emitDateClick(value);
 			},

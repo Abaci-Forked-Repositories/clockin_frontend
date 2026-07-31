@@ -1,9 +1,13 @@
 import React, { useRef, useState } from 'react';
-import dayjs from 'dayjs';
 import ReusableScheduleCalendar from '../../components/MasterComponents/ScheduleComponent/ReusableScheduleCalendar';
 import ScheduleCalendarDetailModal from '../Schedule/ScheduleCalendarDetailModal';
 
-const dayKey = (d: Date) => dayjs(d).format('YYYY-MM-DD');
+const dayKey = (d: Date) => {
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${y}-${m}-${day}`;
+};
 
 type Props = {
 	groupId?: string | number;

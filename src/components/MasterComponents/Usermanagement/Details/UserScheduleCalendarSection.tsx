@@ -1,12 +1,16 @@
 import React, { useCallback, useRef, useState } from 'react';
-import dayjs from 'dayjs';
 import Card, { CardBody, CardHeader, CardLabel, CardTitle } from '../../../bootstrap/Card';
 import ReusableScheduleCalendar from '../../ScheduleComponent/ReusableScheduleCalendar';
 import UserCalendarDetailModal from './UserCalendarDetailModal';
 import { authAxios } from '../../../../axiosInstance';
 import useToasterNotification from '../../../../hooks/useToasterNotification';
 
-const dayKey = (d: Date) => dayjs(d).format('YYYY-MM-DD');
+const dayKey = (d: Date) => {
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${y}-${m}-${day}`;
+};
 
 type UserScheduleCalendarSectionProps = {
 	userId?: string;

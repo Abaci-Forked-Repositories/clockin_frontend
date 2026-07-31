@@ -48,7 +48,11 @@ export const isOnTenantSubdomain = () => {
 	return hostname !== rootDomain && hostname.endsWith(`.${rootDomain}`);
 };
 
+/** First page when the app opens (unauthenticated root `/`). */
 export const getDefaultAuthPath = () => '/signup';
+
+/** Page after logout (and when a protected route is hit without a token). */
+export const getLoginAuthPath = () => '/login';
 
 const isOnApiHost = () => {
 	const rootDomain = getRootDomain();
