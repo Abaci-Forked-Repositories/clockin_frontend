@@ -117,9 +117,9 @@ const collectShifts = (detail: any | null): any[] => {
 type ShiftDetailRow = {
 	shift_name?: string;
 	scheduled?: number;
-	worked?: number;
+	present?: number;
 	leave?: number;
-	off?: number;
+	absent?: number;
 	start_time?: string;
 	end_time?: string;
 	working_users?: any[];
@@ -143,9 +143,9 @@ const getShiftDisplayRows = (detail: any | null): ShiftDetailRow[] => {
 		return detail.shift_details.map((r: any) => ({
 			shift_name: r?.shift_name || r?.name,
 			scheduled: r?.scheduled,
-			worked: r?.worked,
+			present: r?.present ?? r?.worked,
 			leave: r?.leave,
-			off: r?.off,
+			absent: r?.absent ?? r?.off,
 			start_time: r?.start_time,
 			end_time: r?.end_time,
 			working_users: Array.isArray(r?.working_users) ? r.working_users : undefined,
@@ -160,9 +160,9 @@ const getShiftDisplayRows = (detail: any | null): ShiftDetailRow[] => {
 
 type ScheduleSummaryCounts = {
 	scheduled?: number;
-	worked?: number;
+	present?: number;
 	leave?: number;
-	off?: number;
+	absent?: number;
 };
 
 type ScheduleEntryDisplay = {
@@ -181,18 +181,18 @@ const pickScheduleSummary = (raw: unknown): ScheduleSummaryCounts | null => {
 		return typeof v === 'number' && !Number.isNaN(v) ? v : undefined;
 	};
 	const scheduled = n('scheduled');
-	const worked = n('worked');
+	const present = n('present') ?? n('worked');
 	const leave = n('leave');
-	const off = n('off');
+	const absent = n('absent') ?? n('off');
 	if (
 		scheduled === undefined &&
-		worked === undefined &&
+		present === undefined &&
 		leave === undefined &&
-		off === undefined
+		absent === undefined
 	) {
 		return null;
 	}
-	return { scheduled, worked, leave, off };
+	return { scheduled, present, leave, absent };
 };
 
 const getScheduleEntries = (detail: any | null): ScheduleEntryDisplay[] => {
@@ -575,7 +575,7 @@ const ScheduleCalendarDetailModal = ({
 													const sum = e.schedule_summary;
 													const hasSummary =
 														sum != null &&
-														[sum.scheduled, sum.worked, sum.leave, sum.off].some(
+														[sum.scheduled, sum.present, sum.leave, sum.absent].some(
 															(v) => v != null,
 														);
 													const rowKey =
@@ -606,9 +606,9 @@ const ScheduleCalendarDetailModal = ({
 																	<span className='me-2'>
 																		Scheduled: {sum.scheduled ?? '—'}
 																	</span>
-																	<span className='me-2'>Worked: {sum.worked ?? '—'}</span>
+																	<span className='me-2'>Present: {sum.present ?? '—'}</span>
 																	<span className='me-2'>Leave: {sum.leave ?? '—'}</span>
-																	<span>Off: {sum.off ?? '—'}</span>
+																	<span>Absent: {sum.absent ?? '—'}</span>
 																</div>
 															)}
 														</li>
@@ -665,7 +665,7 @@ const ScheduleCalendarDetailModal = ({
 								{shiftRows.length ? (
 									<ul className='list-unstyled mb-0 small'>
 										{shiftRows.map((row, i) => {
-											const hasStats = [row.scheduled, row.worked, row.leave, row.off].some(
+											const hasStats = [row.scheduled, row.present, row.leave, row.absent].some(
 												(v) => v != null,
 											);
 											const hasTimes = row.start_time || row.end_time;
@@ -687,9 +687,9 @@ const ScheduleCalendarDetailModal = ({
 													{hasStats && (
 														<div className='text-muted'>
 															<span className='me-2'>Scheduled: {row.scheduled ?? '—'}</span>
-															<span className='me-2'>Worked: {row.worked ?? '—'}</span>
+															<span className='me-2'>Present: {row.present ?? '—'}</span>
 															<span className='me-2'>Leave: {row.leave ?? '—'}</span>
-															<span>Off: {row.off ?? '—'}</span>
+															<span>Absent: {row.absent ?? '—'}</span>
 														</div>
 													)}
 													{workingLabels.length > 0 && (

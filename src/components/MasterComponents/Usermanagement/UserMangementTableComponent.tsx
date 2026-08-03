@@ -116,6 +116,20 @@ const UserManagementTableComponent = (props) => {
 			render: (rowData) => (rowData?.group?.name || '----'),
 		},
 		{
+			title: 'Schedules',
+			field: 'schedules',
+			sorting: false,
+			render: (rowData) => {
+				const schedules = Array.isArray(rowData?.schedules) ? rowData.schedules : [];
+				const names = schedules
+					.map((schedule: any) =>
+						typeof schedule === 'object' ? schedule?.name : null,
+					)
+					.filter(Boolean);
+				return names.length ? names.join(', ') : '----';
+			},
+		},
+		{
 			title: 'Site',
 			field: 'site__name',
 			render: (rowData) => (rowData?.site?.name || '----'),

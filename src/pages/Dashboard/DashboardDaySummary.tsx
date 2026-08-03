@@ -117,6 +117,7 @@ export type DashboardDaySummary = {
 	timezone?: string;
 	total_schedules: number;
 	total_employees: number;
+	total_scheduled_employees?: number;
 	total_counts: StatusCounts;
 	total_clock_counts: ClockCounts;
 	schedules?: DashboardScheduleSummary[];
@@ -521,31 +522,52 @@ const DashboardDaySummary = ({ scheduleId }: Props) => {
 							<p className='hr-dashboard__hero-meta mb-0'>{summary.timezone}</p>
 						) : null}
 					</div>
-					<div className='col-md-4 hr-dashboard__hero-stat'>
-						<div className='hr-dashboard__hero-stat-value'>
-							{summary?.total_employees ?? '—'}
+					{isScheduleView ? (
+						<div className='col-md-4 hr-dashboard__hero-stat'>
+							<div className='hr-dashboard__hero-stat-value'>
+								{summary?.total_employees ?? '—'}
+							</div>
+							<div className='hr-dashboard__hero-stat-label'>
+								<GroupsOutlinedIcon
+									sx={{ fontSize: '1rem', verticalAlign: 'text-bottom', mr: 0.5 }}
+								/>
+								employees on this schedule
+								{(scheduleDetail?.direct_employees ?? 0) > 0 && (
+									<span className='d-block small mt-1 opacity-75'>
+										{scheduleDetail?.direct_employees} direct (non-group)
+									</span>
+								)}
+							</div>
 						</div>
-						<div className='hr-dashboard__hero-stat-label'>
-							<GroupsOutlinedIcon
-								sx={{ fontSize: '1rem', verticalAlign: 'text-bottom', mr: 0.5 }}
-							/>
-							{isScheduleView ? (
-								<>
-									employees on this schedule
-									{(scheduleDetail?.direct_employees ?? 0) > 0 && (
-										<span className='d-block small mt-1 opacity-75'>
-											{scheduleDetail?.direct_employees} direct (non-group)
-										</span>
-									)}
-								</>
-							) : (
-								<>
-									employees across {summary?.total_schedules ?? 0} schedule
-									{summary?.total_schedules === 1 ? '' : 's'}
-								</>
-							)}
+					) : (
+						<div className='col-md-4'>
+							<div className='hr-dashboard__hero-stat-pair'>
+								<div className='hr-dashboard__hero-stat'>
+									<div className='hr-dashboard__hero-stat-value'>
+										{summary?.total_employees ?? '—'}
+									</div>
+									<div className='hr-dashboard__hero-stat-label'>
+										Total employees
+									</div>
+								</div>
+								<div className='hr-dashboard__hero-stat-divider' aria-hidden />
+								<div className='hr-dashboard__hero-stat'>
+									<div className='hr-dashboard__hero-stat-value'>
+										{summary?.total_scheduled_employees ?? '—'}
+									</div>
+									<div className='hr-dashboard__hero-stat-label'>
+										Scheduled today
+									</div>
+								</div>
+							</div>
+							{summary?.total_schedules != null ? (
+								<div className='hr-dashboard__hero-stat-footnote text-end mt-2'>
+									across {summary.total_schedules} schedule
+									{summary.total_schedules === 1 ? '' : 's'}
+								</div>
+							) : null}
 						</div>
-					</div>
+					)}
 				</div>
 			</div>
 

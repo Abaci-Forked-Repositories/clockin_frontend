@@ -1407,6 +1407,40 @@ overflow-x: hidden;
 		}
 	}
 
+	&__hero-stat-pair {
+		display: flex;
+		align-items: stretch;
+		justify-content: flex-end;
+		gap: 1.25rem;
+
+		.hr-dashboard__hero-stat {
+			text-align: center;
+			margin-top: 0;
+		}
+
+		@media (max-width: 767.98px) {
+			justify-content: flex-start;
+			margin-top: 1.25rem;
+		}
+	}
+
+	&__hero-stat-divider {
+		width: 1px;
+		align-self: stretch;
+		background: currentColor;
+		opacity: 0.25;
+		margin: 0.35rem 0;
+	}
+
+	&__hero-stat-footnote {
+		font-size: 0.8rem;
+		opacity: 0.75;
+
+		@media (max-width: 767.98px) {
+			text-align: left !important;
+		}
+	}
+
 	&__hero-stat-value {
 		font-size: clamp(2.5rem, 5vw, 3.5rem);
 		font-weight: 800;

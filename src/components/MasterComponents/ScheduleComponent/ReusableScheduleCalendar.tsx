@@ -282,36 +282,56 @@ const ReusableScheduleCalendar = ({
 		return lines.join('\n');
 	};
 
-	/** Group calendar day rows: scheduled / leave counts from `schedule_summary` (row or each `schedule[]` item). */
-	const getGroupDayScheduleCounts = (row: any): { scheduled: number; leave: number } | null => {
+	/** Group calendar day rows: counts from `schedule_summary` (row or each `schedule[]` item). */
+	const getGroupDayScheduleCounts = (
+		row: any,
+	): { scheduled: number; present: number; leave: number; absent: number } | null => {
 		const pick = (v: unknown) => (typeof v === 'number' && !Number.isNaN(v) ? v : null);
-		const fromSummary = (sum: any): { sch: number; leave: number } | null => {
+		const fromSummary = (
+			sum: any,
+		): { sch: number; present: number; leave: number; absent: number } | null => {
 			if (!sum || typeof sum !== 'object') return null;
 			const s = pick(sum.scheduled);
+			const present = pick(sum.present) ?? pick(sum.worked);
 			const l = pick(sum.leave);
-			if (s === null && l === null) return null;
-			return { sch: s ?? 0, leave: l ?? 0 };
+			const absent = pick(sum.absent) ?? pick(sum.off);
+			if (s === null && present === null && l === null && absent === null) return null;
+			return {
+				sch: s ?? 0,
+				present: present ?? 0,
+				leave: l ?? 0,
+				absent: absent ?? 0,
+			};
 		};
 
 		const top = fromSummary(row?.schedule_summary);
 		if (top) {
-			return { scheduled: top.sch, leave: top.leave };
+			return {
+				scheduled: top.sch,
+				present: top.present,
+				leave: top.leave,
+				absent: top.absent,
+			};
 		}
 
 		if (!Array.isArray(row?.schedule)) return null;
 		let sch = 0;
+		let present = 0;
 		let leave = 0;
+		let absent = 0;
 		let found = false;
 		for (const item of row.schedule) {
 			const a = fromSummary(item?.schedule_summary);
 			if (a) {
 				sch += a.sch;
+				present += a.present;
 				leave += a.leave;
+				absent += a.absent;
 				found = true;
 			}
 		}
 		if (!found) return null;
-		return { scheduled: sch, leave };
+		return { scheduled: sch, present, leave, absent };
 	};
 
 	const pushAttendanceDayEvents = (
@@ -343,7 +363,7 @@ const ReusableScheduleCalendar = ({
 		if (calendarType === 'group') {
 			const counts = getGroupDayScheduleCounts(row);
 			if (counts) {
-				title = `${title}\nScheduled: ${counts.scheduled}\nOn leave: ${counts.leave}`;
+				title = `${title}\nScheduled: ${counts.scheduled}\nPresent: ${counts.present}\nLeave: ${counts.leave}\nAbsent: ${counts.absent}`;
 			}
 		}
 		events.push({
