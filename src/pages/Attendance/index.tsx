@@ -4,14 +4,14 @@ import SubHeader, { SubHeaderLeft, SubHeaderRight } from '../../layout/SubHeader
 import Card, { CardBody, CardHeader, CardLabel, CardTitle } from '../../components/bootstrap/Card';
 import PageWrapper from '../../layout/PageWrapper/PageWrapper';
 import AddButton from '../../components/CustomComponent/Buttons/AddButton';
-import ExportButton, { EXPORT_VARIANTS } from '../../components/CustomComponent/Buttons/ExportButton';
+import AttendanceExportButton from './AttendanceExportButton';
 import AttendanceTable from './AttendanceTable';
 import AddAttendance from './AddAttendance';
 import AuthContext from '../../contexts/authContext';
 import {
-	isUserRole as isEmployeeRole,
+	isSelfEquivalentMode,
 	isPrivilegedToggleMode,
-	resolveTenantRouteRole,
+	isAdminOrHrToggleMode,
 } from '../../helpers/roleToggleUtils';
 
 const Index = () => {
@@ -22,16 +22,18 @@ const Index = () => {
 	const urlBackup = useRef<string | undefined>(undefined);
 	const [attendanceModalShow, setAttendanceModalShow] = useState(false);
 	const [editId, setEditId] = useState<any>(null);
-	const showAddAttendance =
-		isEmployeeRole(userData) || (resolveTenantRouteRole(userData) === 'Admin' && mode === 'Self');
+	const canAddOrEditAttendance = isAdminOrHrToggleMode(userData, mode);
+	const showAddAttendance = isSelfEquivalentMode(userData, mode) || canAddOrEditAttendance;
 	const showExport = isPrivilegedToggleMode(userData, mode);
 
 	const openAddModal = (state: boolean) => {
+		if (state && !showAddAttendance) return;
 		if (state) setEditId(null);
 		setAttendanceModalShow(state);
 	};
 
 	const editModalToggle = (id: any) => {
+		if (!canAddOrEditAttendance) return;
 		setEditId(id);
 		setAttendanceModalShow(true);
 	};
@@ -59,13 +61,7 @@ const Index = () => {
 						{showAddAttendance && (
 							<AddButton modalShow={openAddModal} name='Add Attendance' />
 						)}
-						{showExport && (
-							<ExportButton
-								url={urlBackup}
-								name='Attendance'
-								variant={EXPORT_VARIANTS.attendance}
-							/>
-						)}
+						{showExport && <AttendanceExportButton url={urlBackup} name='Attendance' />}
 					</SubHeaderRight>
 				</SubHeader>
 				<Card stretch>

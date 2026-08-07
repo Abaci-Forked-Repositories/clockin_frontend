@@ -9,7 +9,8 @@ import {
 	getWorkedTimeFromAttendance,
 } from '../../../pages/Attendance/attendanceStatusUtils';
 import {
-	shiftLabelsFromShiftsField,
+	CALENDAR_CELL_MAX_SHIFT_NAMES,
+	shiftNamesFromShiftsField,
 	summarizeShiftLabels,
 } from '../../../pages/Schedule/scheduleShiftUtils';
 import CustomSpinner from '../../CustomSpinner/CustomSpinner';
@@ -61,7 +62,8 @@ const ReusableScheduleCalendar = ({
 	const initialLoadNotifiedRef = useRef(false);
 	const resolvedEntityId = entityId ?? userId;
 	const showViewFilter = enableViewFilter && calendarType === 'user';
-	const effectiveTab = showViewFilter ? activeTab : 'Status';
+	/** Without the filter, show status + shifts (group/schedule calendars). */
+	const effectiveTab = showViewFilter ? activeTab : 'All';
 	const showTopControls = !(loading && hideLoadingIndicator);
 
 	useEffect(() => {
@@ -153,37 +155,90 @@ const ReusableScheduleCalendar = ({
 		return '';
 	};
 
-	const shiftLabelFromField = (raw: unknown): string => {
-		const fromMap = shiftLabelsFromShiftsField(raw);
-		if (fromMap.length) return summarizeShiftLabels(fromMap);
-		const names = toShiftNames(raw);
-		if (names.length) return summarizeShiftLabels(names);
-		return '';
+	const shiftNamesFromField = (raw: unknown): string[] => {
+		const fromMap = shiftNamesFromShiftsField(raw);
+		if (fromMap.length) return fromMap;
+		return toShiftNames(raw);
 	};
 
-	const deriveShiftLabelFromRow = (row: any): string => {
+	const collectDayShiftNames = (row: any): string[] => {
+		const names: string[] = [];
+		const add = (list: string[]) => {
+			for (const name of list) {
+				const trimmed = String(name || '').trim();
+				if (trimmed && !names.includes(trimmed)) names.push(trimmed);
+			}
+		};
+
+		/** Group/schedule calendar days: `shift_details: [{ shift_name, ... }]` */
+		if (Array.isArray(row?.shift_details) && row.shift_details.length) {
+			add(toShiftNames(row.shift_details));
+		}
+
 		const sd = row?.special_day;
-		const hasSpecialDay = sd != null && sd !== '';
-		if (hasSpecialDay) {
-			const label = shiftLabelFromField(sd?.shifts);
-			if (label) return label;
+		if (sd != null && sd !== '' && typeof sd === 'object') {
+			if (Array.isArray((sd as { shift_details?: unknown }).shift_details)) {
+				add(toShiftNames((sd as { shift_details: unknown[] }).shift_details));
+			}
+			add(shiftNamesFromField((sd as { shifts?: unknown }).shifts));
 		}
 
 		const sched = row?.schedule;
 		if (sched != null && sched !== '') {
-			const fromSched = shiftLabelFromField(sched?.shifts);
-			if (fromSched) return fromSched;
-			const single =
-				sched?.shift_details?.name ||
-				sched?.shift_details?.shift_name ||
-				sched?.shift_name ||
-				'';
-			if (single) return String(single).trim();
+			if (typeof sched === 'object' && !Array.isArray(sched)) {
+				if (Array.isArray((sched as { shift_details?: unknown }).shift_details)) {
+					add(toShiftNames((sched as { shift_details: unknown[] }).shift_details));
+				}
+				add(shiftNamesFromField((sched as { shifts?: unknown }).shifts));
+				add(shiftNamesFromField(sched));
+				const single =
+					(sched as any)?.shift_details?.name ||
+					(sched as any)?.shift_details?.shift_name ||
+					(sched as any)?.shift_name ||
+					'';
+				if (single) add([String(single).trim()]);
+			} else if (Array.isArray(sched)) {
+				for (const item of sched) {
+					if (item && typeof item === 'object') {
+						if (Array.isArray(item.shift_details)) add(toShiftNames(item.shift_details));
+						add(shiftNamesFromField(item.shifts));
+					}
+				}
+				add(toShiftNames(sched));
+			} else {
+				add(shiftNamesFromField(sched));
+			}
+		}
+
+		/**
+		 * Day payload example:
+		 * shifts: { id, name: "10-7pm", shifts: { "107": { start_time, end_time } } }
+		 */
+		add(shiftNamesFromField(row?.shifts));
+
+		if (
+			!names.length &&
+			row?.shifts != null &&
+			typeof row.shifts === 'object' &&
+			!Array.isArray(row.shifts)
+		) {
+			const parentName = String((row.shifts as { name?: string }).name || '').trim();
+			if (parentName) add([parentName]);
+		}
+
+		return names;
+	};
+
+	const deriveShiftLabelFromRow = (row: any): string => {
+		const names = collectDayShiftNames(row);
+		if (names.length) return summarizeShiftLabels(names, CALENDAR_CELL_MAX_SHIFT_NAMES);
+
+		const sched = row?.schedule;
+		if (sched != null && sched !== '') {
 			const title = deriveScheduleTitle(sched);
 			if (title) return title;
 		}
-
-		return shiftLabelFromField(row?.shifts);
+		return '';
 	};
 
 	const SCHEDULE_EVENT_COLOR = '#3174ad';
@@ -253,33 +308,11 @@ const ReusableScheduleCalendar = ({
 	};
 
 	const buildScheduleEventTitle = (row: any): string => {
-		const lines: string[] = [];
-		const sd = row?.special_day;
-		const hasSpecialDay = sd != null && sd !== '';
-
-		if (hasSpecialDay && typeof sd === 'object') {
-			const sdName = String((sd as { name?: string }).name || '').trim();
-			if (sdName) lines.push(sdName);
-			const shiftLines = shiftLabelsFromShiftsField((sd as { shifts?: unknown }).shifts);
-			if (shiftLines.length) lines.push(...shiftLines);
+		const names = collectDayShiftNames(row);
+		if (names.length) {
+			return summarizeShiftLabels(names, CALENDAR_CELL_MAX_SHIFT_NAMES);
 		}
-
-		const sched = row?.schedule;
-		if (sched != null && sched !== '') {
-			const scheduleName = deriveScheduleTitle(sched);
-			if (scheduleName && !lines.includes(scheduleName)) lines.push(scheduleName);
-			const shiftSource =
-				typeof sched === 'object' && !Array.isArray(sched) ? (sched as { shifts?: unknown }).shifts : sched;
-			const shiftLines = shiftLabelsFromShiftsField(shiftSource);
-			if (shiftLines.length) lines.push(...shiftLines);
-		}
-
-		if (!lines.length) {
-			const fallback = deriveShiftLabelFromRow(row);
-			if (fallback) lines.push(fallback);
-		}
-
-		return lines.join('\n');
+		return deriveShiftLabelFromRow(row);
 	};
 
 	/** Group calendar day rows: counts from `schedule_summary` (row or each `schedule[]` item). */

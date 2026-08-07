@@ -9,6 +9,31 @@ import { authAxios } from '../../axiosInstance';
 import useToasterNotification from '../../hooks/useToasterNotification';
 import GroupFields from './GroupFields';
 import CustomSpinner from '../../components/CustomSpinner/CustomSpinner';
+import {
+	COMPANY_HR_SETTINGS_DEFAULTS,
+	unwrapCompanyHrSettings,
+} from '../Settings/companyHrSettingsUtils';
+
+const DEFAULT_ATTENDANCE_EMAILING_TIME = '06:00';
+
+const toTimeInputValue = (raw: unknown): string => {
+	const text = String(raw ?? '').trim();
+	if (!text) return DEFAULT_ATTENDANCE_EMAILING_TIME;
+	const parts = text.split(':');
+	if (parts.length < 2) return DEFAULT_ATTENDANCE_EMAILING_TIME;
+	const hours = String(parts[0] || '0').padStart(2, '0');
+	const minutes = String(parts[1] || '0').padStart(2, '0');
+	return `${hours}:${minutes}`;
+};
+
+const toApiTimeValue = (raw: unknown): string => {
+	const text = String(raw ?? '').trim();
+	if (!text) return `${DEFAULT_ATTENDANCE_EMAILING_TIME}:00`;
+	const parts = text.split(':');
+	if (parts.length === 2) return `${parts[0]}:${parts[1]}:00`;
+	if (parts.length >= 3) return `${parts[0]}:${parts[1]}:${parts[2]}`;
+	return `${DEFAULT_ATTENDANCE_EMAILING_TIME}:00`;
+};
 
 const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 	const {
@@ -29,6 +54,8 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 			schedule: [],
 			sites: [],
 			leave_types: [],
+			attendance_emailing_enabled: true,
+			attendance_emailing_time: DEFAULT_ATTENDANCE_EMAILING_TIME,
 		},
 	});
 
@@ -39,6 +66,9 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 	const [scheduleOptions, setScheduleOptions] = useState([]);
 	const [sitesOptions, setSitesOptions] = useState([]);
 	const [leaveTypeOptions, setLeaveTypeOptions] = useState([]);
+	const [defaultTimezone, setDefaultTimezone] = useState(
+		COMPANY_HR_SETTINGS_DEFAULTS.default_timezone,
+	);
 	const { showErrorNotification } = useToasterNotification();
 	const isEdit = Boolean(id);
 
@@ -52,10 +82,40 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 		const schedulesReq = authAxios.get('api/hr/schedules/?paginate=off');
 		const sitesReq = authAxios.get('api/hr/sites/?paginate=off');
 		const leaveTypesReq = authAxios.get('/api/hr/leave-types/?paginate=off');
+		const settingsReq = authAxios
+			.get('/api/hr/company-hr-settings/')
+			.then((res) => {
+				const settingsRow = unwrapCompanyHrSettings(res?.data);
+				const timezone = String(
+					(settingsRow as Record<string, unknown> | null)?.default_timezone ||
+						COMPANY_HR_SETTINGS_DEFAULTS.default_timezone,
+				).trim();
+				setDefaultTimezone(timezone || COMPANY_HR_SETTINGS_DEFAULTS.default_timezone);
+			})
+			.catch(() => {
+				setDefaultTimezone(COMPANY_HR_SETTINGS_DEFAULTS.default_timezone);
+			});
 		const groupReq = isEdit ? authAxios.get(`api/hr/groups/${id}/`) : Promise.resolve(null);
 
-		Promise.all([groupsReq, usersReq, schedulesReq, sitesReq, leaveTypesReq, groupReq])
-			.then(([groupsRes, usersRes, schedulesRes, sitesRes, leaveTypesRes, groupRes]: any) => {
+		Promise.all([
+			groupsReq,
+			usersReq,
+			schedulesReq,
+			sitesReq,
+			leaveTypesReq,
+			settingsReq,
+			groupReq,
+		])
+			.then(
+				([
+					groupsRes,
+					usersRes,
+					schedulesRes,
+					sitesRes,
+					leaveTypesRes,
+					,
+					groupRes,
+				]: any) => {
 				const groupOptions =
 					groupsRes?.data?.map((item: any) => ({
 						label: item?.name,
@@ -190,6 +250,14 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 					})
 					.filter(Boolean);
 
+				const attendanceEmailingEnabled =
+					group == null
+						? true
+						: group?.attendance_emailing_enabled === true ||
+							group?.attendance_emailing_enabled === 'true' ||
+							group?.attendance_emailing_enabled === 1 ||
+							group?.attendance_emailing_enabled === '1';
+
 				reset({
 					name: group?.name || '',
 					group_type: selectedType,
@@ -200,6 +268,10 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 					schedule: selectedSchedules,
 					sites: selectedSites,
 					leave_types: selectedLeaveTypes,
+					attendance_emailing_enabled: attendanceEmailingEnabled,
+					attendance_emailing_time: toTimeInputValue(
+						group?.attendance_emailing_time || DEFAULT_ATTENDANCE_EMAILING_TIME,
+					),
 				});
 				setIsLoading(false);
 			})
@@ -211,6 +283,7 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 
 	const onSubmit = (data: any) => {
 		setWaitingForAxios(true);
+		const attendanceEmailingEnabled = Boolean(data?.attendance_emailing_enabled);
 		const sharedPayload = {
 			name: data?.name || '',
 			type: data?.group_type?.value || '',
@@ -225,6 +298,10 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 			leave_types: (data?.leave_types || [])
 				.map((lt: any) => Number(lt?.value))
 				.filter((n: number) => !Number.isNaN(n)),
+			attendance_emailing_enabled: attendanceEmailingEnabled,
+			attendance_emailing_time: toApiTimeValue(
+				data?.attendance_emailing_time || DEFAULT_ATTENDANCE_EMAILING_TIME,
+			),
 		};
 
 		const request = isEdit
@@ -262,6 +339,7 @@ const AddGroup = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 									scheduleOptions={scheduleOptions}
 									sitesOptions={sitesOptions}
 									leaveTypeOptions={leaveTypeOptions}
+									defaultTimezone={defaultTimezone}
 								/>
 								<div className='row m-0'>
 									<div className='col-12 p-3'>

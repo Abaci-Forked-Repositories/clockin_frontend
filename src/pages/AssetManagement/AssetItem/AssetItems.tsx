@@ -5,6 +5,7 @@ import { Tooltip } from '@mui/material';
 import PropTypes from 'prop-types';
 import Swal from 'sweetalert2';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import { useNavigate } from 'react-router-dom';
 import { authAxios } from '../../../axiosInstance';
 import useTablestyle from '../../../hooks/useTablestyles';
 import { formatFilters } from '../../../helpers/functions';
@@ -14,6 +15,7 @@ import { extractApiErrorMessage } from '../../../hooks/useErrorHandler';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
 import Button from '../../../components/bootstrap/Button';
 import StatusBadge from '../../../components/CustomComponent/StatusBadge';
+import NavigationNameWithTooltip from '../../../components/CustomComponent/NavigationNameWithTooltip';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import AssetItemMovementsModal, {
 	type AssetItemMovementsContext,
@@ -23,6 +25,8 @@ type AssetItemsProps = {
 	tableRef: React.MutableRefObject<any>;
 	editModalToggle: (id: any) => void;
 };
+
+const assetDetailPath = (id: string | number) => `/asset-details/${id}`;
 
 const resolveRelatedName = (value: any, fallback?: string): string => {
 	if (value != null && typeof value === 'object') {
@@ -54,6 +58,7 @@ const canReturnAssetRow = (rowData: any) =>
 	isReturnableAssetStatus(rowData) && !isConsumableRow(rowData);
 
 const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
+	const navigate = useNavigate();
 	const urlBackup = useRef('');
 	const [filterEnabled, setFilterEnabled] = useState(false);
 	const [pageSize, setPageSize] = useState(5);
@@ -64,6 +69,12 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 	);
 	const { theme, rowStyles, headerStyles } = useTablestyle();
 	const { showErrorNotification } = useToasterNotification();
+
+	const goToDetail = (rowData: any) => {
+		const rowId = rowData?.id;
+		if (rowId == null) return;
+		navigate(assetDetailPath(rowId));
+	};
 
 	const openMovementsModal = (rowData: any) => {
 		setMovementsContext({
@@ -117,7 +128,18 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 			{
 				title: 'Name',
 				field: 'name',
-				render: (rowData: any) => rowData?.name || '----',
+				render: (rowData: any) => {
+					const name = rowData?.name || '----';
+					if (rowData?.id == null) return name;
+					return (
+						<NavigationNameWithTooltip
+							title={`View ${name} details`}
+							navigateTo={assetDetailPath(rowData.id)}
+							content={name}
+							style={{ cursor: 'pointer', fontWeight: 600 }}
+						/>
+					);
+				},
 			},
 			{
 				title: 'Asset type',
@@ -142,26 +164,28 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 				sorting: false,
 				render: (rowData: any) => resolveRelatedName(rowData?.site, rowData?.site_name),
 			},
-		{
-			title: 'Status',
-			field: 'status',
-			lookup: {
-				AVAILABLE: 'Available',
-				ASSIGNED: 'Assigned',
-				IN_USE: 'In Use',
-				MAINTENANCE: 'Under Maintenance',
-				DAMAGED: 'Damaged',
-				LOST: 'Lost',
-				DISPOSED: 'Disposed',
+			{
+				title: 'Status',
+				field: 'status',
+				lookup: {
+					AVAILABLE: 'Available',
+					ASSIGNED: 'Assigned',
+					IN_USE: 'In Use',
+					MAINTENANCE: 'Under Maintenance',
+					DAMAGED: 'Damaged',
+					LOST: 'Lost',
+					DISPOSED: 'Disposed',
+				},
+				render: (rowData: any) => (
+					<span style={{ pointerEvents: 'none' }}>
+						<StatusBadge
+							status={rowData?.status}
+							label={rowData?.status_display}
+							emptyFallback='----'
+						/>
+					</span>
+				),
 			},
-			render: (rowData: any) => (
-				<StatusBadge
-					status={rowData?.status}
-					label={rowData?.status_display}
-					emptyFallback='----'
-				/>
-			),
-		},
 			{
 				title: 'Assigned to',
 				field: 'assigned_to',
@@ -213,7 +237,10 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 							color='info'
 							className='text-nowrap'
 							icon='AssignmentReturn'
-							onClick={() => handleReturnAsset(rowData)}>
+							onClick={(e: React.MouseEvent) => {
+								e.stopPropagation();
+								handleReturnAsset(rowData);
+							}}>
 							Return
 						</Button>
 					) : null}
@@ -237,82 +264,88 @@ const AssetItems = ({ tableRef, editModalToggle }: AssetItemsProps) => {
 				context={movementsContext}
 			/>
 			<Card stretch>
-			<CardBody>
-				<div className='material-table-wrapper'>
-					<ThemeProvider theme={theme}>
-						<MaterialTable
-							key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
-							title=' '
-							columns={columns as any}
-							tableRef={tableRef}
-							onOrderChange={(orderBy, orderDirection) => {
-								setSortState({ orderBy, orderDirection });
-							}}
-							data={(query) =>
-								new Promise((resolve) => {
-									let orderBy = '';
-									const otherFilters = formatFilters(query.filters);
-									if (query.orderBy) {
-										orderBy =
-											query.orderDirection === 'asc'
-												? `&ordering=-${String(query.orderBy?.field)}`
-												: `&ordering=${String(query.orderBy?.field)}`;
-									}
+				<CardBody>
+					<div className='material-table-wrapper'>
+						<ThemeProvider theme={theme}>
+							<MaterialTable
+								key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
+								title=' '
+								columns={columns as any}
+								tableRef={tableRef}
+								onRowClick={(_event, rowData: any) => {
+									goToDetail(rowData);
+								}}
+								onOrderChange={(orderBy, orderDirection) => {
+									setSortState({ orderBy, orderDirection });
+								}}
+								data={(query) =>
+									new Promise((resolve) => {
+										let orderBy = '';
+										const otherFilters = formatFilters(query.filters);
+										if (query.orderBy) {
+											orderBy =
+												query.orderDirection === 'asc'
+													? `&ordering=-${String(query.orderBy?.field)}`
+													: `&ordering=${String(query.orderBy?.field)}`;
+										}
 
-									const url = `/api/hr/asset-items/?limit=${
-										query.pageSize
-									}&offset=${query.pageSize * query.page}&search=${
-										query.search
-									}${orderBy}&${otherFilters}`;
+										const url = `/api/hr/asset-items/?limit=${
+											query.pageSize
+										}&offset=${query.pageSize * query.page}&search=${
+											query.search
+										}${orderBy}&${otherFilters}`;
 
-									urlBackup.current = url;
-									authAxios
-										.get(url)
-										.then((response) => {
-											const rows = response?.data?.results || [];
-											resolve({
-												data: rows,
-												page: query.page,
-												totalCount: response?.data?.count || 0,
+										urlBackup.current = url;
+										authAxios
+											.get(url)
+											.then((response) => {
+												const rows = response?.data?.results || [];
+												resolve({
+													data: rows,
+													page: query.page,
+													totalCount: response?.data?.count || 0,
+												});
+											})
+											.catch((err) => {
+												showErrorNotification(err);
+												resolve({
+													data: [],
+													page: query.page,
+													totalCount: 0,
+												});
 											});
-										})
-										.catch((err) => {
-											showErrorNotification(err);
-											resolve({
-												data: [],
-												page: query.page,
-												totalCount: 0,
-											});
-										});
-								})
-							}
-							options={{
-								filtering: filterEnabled,
-								pageSize,
-								pageSizeOptions: [5, 10, 20, 50],
-								emptyRowsWhenPaging: true,
-								debounceInterval: 500,
-								headerStyle: headerStyles(),
-								rowStyle: rowStyles as any,
-							}}
-							onRowsPerPageChange={(size) => setPageSize(size)}
-							actions={[
-								{
-									icon: () => (
-										<FilterListIcon
-											color={filterEnabled ? 'primary' : 'action'}
-										/>
-									),
-									tooltip: 'Toggle filter',
-									isFreeAction: true,
-									onClick: () => setFilterEnabled((prev) => !prev),
-								},
-							]}
-						/>
-					</ThemeProvider>
-				</div>
-			</CardBody>
-		</Card>
+									})
+								}
+								options={{
+									filtering: filterEnabled,
+									pageSize,
+									pageSizeOptions: [5, 10, 20, 50],
+									emptyRowsWhenPaging: true,
+									debounceInterval: 500,
+									headerStyle: headerStyles(),
+									rowStyle: (data: any, index: number) => ({
+										...(rowStyles()(data, index) || {}),
+										cursor: 'pointer',
+									}),
+								}}
+								onRowsPerPageChange={(size) => setPageSize(size)}
+								actions={[
+									{
+										icon: () => (
+											<FilterListIcon
+												color={filterEnabled ? 'primary' : 'action'}
+											/>
+										),
+										tooltip: 'Toggle filter',
+										isFreeAction: true,
+										onClick: () => setFilterEnabled((prev) => !prev),
+									},
+								]}
+							/>
+						</ThemeProvider>
+					</div>
+				</CardBody>
+			</Card>
 		</>
 	);
 };

@@ -1,4 +1,5 @@
 import React, { useContext, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 // import Swal from 'sweetalert2';
 import SubHeader, {
 	SubHeaderLeft,
@@ -19,6 +20,7 @@ import AuthContext from '../../contexts/authContext';
 import ButtonFiltter from '../../components/CustomComponent/Filters/ButtonFiltter';
 import SiteManagementTableComponent from './SiteManagementTableComponent';
 import AddSite from './AddSite';
+import { isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 
 const Index = () => {
 
@@ -28,16 +30,21 @@ const Index = () => {
 	const [addModalShow, setAddModalShow] = useState(false);
 	const [editId, setEditId] = useState<any>(null);
 	const {userData}=useContext(AuthContext)
+	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
+	const canAddOrEditSites = isAdminOrHrToggleMode(userData, mode);
 	const tenant = userData?.active_relations?.[0]?.tenant_details || null;
 	const [activeTab, setActiveTab] = useState('All')
 	const FilterStatus = ['All', tenant ? tenant?.tenant_name : '']
 	const canSeeTenantFilter=usePermissionHook('view_tenant_filter');	
 	const editModalToggle = (id: any) => {
+		if (!canAddOrEditSites) return;
 		setEditId(id);
 		setAddModalShow(true);
 	}
 
 	const openAddModal = (state: boolean) => {
+		if (state && !canAddOrEditSites) return;
 		if (state) setEditId(null);
 		setAddModalShow(state);
 	};
@@ -64,7 +71,9 @@ const Index = () => {
 
 					</SubHeaderLeft>
 					<SubHeaderRight>
-						<AddButton modalShow={openAddModal} name="Add Site" />
+						{canAddOrEditSites ? (
+							<AddButton modalShow={openAddModal} name="Add Site" />
+						) : null}
 					</SubHeaderRight>
 				</SubHeader>
 				<Card stretch>

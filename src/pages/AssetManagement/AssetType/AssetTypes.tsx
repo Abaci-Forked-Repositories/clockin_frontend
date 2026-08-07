@@ -8,6 +8,7 @@ import useTablestyle from '../../../hooks/useTablestyles';
 import { formatFilters } from '../../../helpers/functions';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
+import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 
 type AssetTypesProps = {
@@ -15,7 +16,7 @@ type AssetTypesProps = {
 	editModalToggle: (id: any) => void;
 };
 
-const yesNo = (value: unknown) => (value ? 'Yes' : 'No');
+const yesNoBadge = (value: unknown) => <StatusBadge status={value ? 'yes' : 'no'} />;
 
 const AssetTypes = ({ tableRef, editModalToggle }: AssetTypesProps) => {
 	const urlBackup = useRef('');
@@ -41,22 +42,22 @@ const AssetTypes = ({ tableRef, editModalToggle }: AssetTypesProps) => {
 			{
 				title: 'Consumable',
 				field: 'is_consumable',
-				render: (rowData: any) => yesNo(rowData?.is_consumable),
+				render: (rowData: any) => yesNoBadge(rowData?.is_consumable),
 			},
 			{
 				title: 'Bookable',
 				field: 'is_bookable',
-				render: (rowData: any) => yesNo(rowData?.is_bookable),
+				render: (rowData: any) => yesNoBadge(rowData?.is_bookable),
 			},
 			{
 				title: 'Self Requestable',
 				field: 'is_self_requestable',
-				render: (rowData: any) => yesNo(rowData?.is_self_requestable),
+				render: (rowData: any) => yesNoBadge(rowData?.is_self_requestable),
 			},
 			{
 				title: 'User Selects Item',
 				field: 'user_selects_item',
-				render: (rowData: any) => yesNo(rowData?.user_selects_item),
+				render: (rowData: any) => yesNoBadge(rowData?.user_selects_item),
 			},
 		],
 		[],

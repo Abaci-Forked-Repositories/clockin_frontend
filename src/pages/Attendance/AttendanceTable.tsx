@@ -1,9 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useMemo, useState } from 'react';
 import MaterialTable from '@material-table/core';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import Chip from '@mui/material/Chip';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import { useSelector } from 'react-redux';
 import EditButton from '../../components/CustomComponent/Buttons/EditButton';
 import DeleteButton from '../../components/CustomComponent/Buttons/DeleteButton';
 import { authAxios } from '../../axiosInstance';
@@ -11,6 +12,8 @@ import useTablestyle from '../../hooks/useTablestyles';
 import { formatFilters } from '../../helpers/functions';
 import useToasterNotification from '../../hooks/useToasterNotification';
 import Moments from '../../helpers/Moment';
+import AuthContext from '../../contexts/authContext';
+import { isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 import AttendanceEventsTimelineModal, {
 	type AttendanceEventsTimelineContext,
 } from './AttendanceEventsTimelineModal';
@@ -30,6 +33,10 @@ const getEventTime = (rowData: any, eventType: string) => {
 };
 
 const AttendanceTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
+	const { userData } = useContext(AuthContext);
+	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
+	const canEditAttendance = isAdminOrHrToggleMode(userData, mode);
 	const [filterEnabled, setFilterEnabled] = useState(false);
 	const [pageSize, setPageSize] = useState(5);
 	const [sortState, setSortState] = useState({ orderBy: null, orderDirection: 'asc' });
@@ -119,26 +126,30 @@ const AttendanceTableComponent = ({ tableRef, urlBackup, editModalToggle }: any)
 					);
 				},
 			},
-			{
-				title: 'Actions',
-				align: 'right' as const,
-				removable: false,
-				sorting: false,
-				grouping: false,
-				filtering: false,
-				render: (rowData: any) => (
-					<div className='d-flex gap-1 justify-content-end'>
-						<EditButton modalShow={editModalToggle} id={rowData?.id} />
-						<DeleteButton
-							apiEndpoint={`/api/users/clock/portal/${rowData?.id}/`}
-							tableRef={tableRef}
-							text='This attendance record will be deleted.'
-						/>
-					</div>
-				),
-			},
+			...(canEditAttendance
+				? [
+						{
+							title: 'Actions',
+							align: 'right' as const,
+							removable: false,
+							sorting: false,
+							grouping: false,
+							filtering: false,
+							render: (rowData: any) => (
+								<div className='d-flex gap-1 justify-content-end'>
+									<EditButton modalShow={editModalToggle} id={rowData?.id} />
+									<DeleteButton
+										apiEndpoint={`/api/users/clock/portal/${rowData?.id}/`}
+										tableRef={tableRef}
+										text='This attendance record will be deleted.'
+									/>
+								</div>
+							),
+						},
+				  ]
+				: []),
 		],
-		[editModalToggle, openEventsTimeline, tableRef],
+		[canEditAttendance, editModalToggle, openEventsTimeline, tableRef],
 	);
 
 	return (

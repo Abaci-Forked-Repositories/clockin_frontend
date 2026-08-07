@@ -21,6 +21,13 @@ const MAINROUTE={
 	LeaveRequests: lazy(() => import('../pages/LeaveManagement/LeaveRequestsPage')),
 	AssetRequests: lazy(() => import('../pages/AssetManagement/AssetRequestsPage')),
 	Assets: lazy(() => import('../pages/AssetManagement/AssetsPage')),
+	BookAsset: lazy(() => import('../pages/AssetManagement/BookAssetPage')),
+	BookAssetDetail: lazy(
+		() => import('../pages/AssetManagement/BookAsset/BookAssetDetailPage'),
+	),
+	AssetItemDetail: lazy(
+		() => import('../pages/AssetManagement/AssetItem/AssetItemDetailPage'),
+	),
 	AssetTypes: lazy(() => import('../pages/AssetManagement/AssetTypesPage')),
 	WfhRequests: lazy(() => import('../pages/WfhManagement/WfhRequestsPage')),
 	LeaveTypes: lazy(() => import('../pages/LeaveManagement/LeaveTypesPage')),
@@ -45,6 +52,7 @@ interface CustomRouteConfig {
 }
 
 const ADMIN_CONSOLE_ROLES = ['Admin', 'Manager', 'HR'];
+const ADMIN_HR_ROLES = ['Admin', 'HR'];
 const SELF_MODE_USER_ROLE = 'user';
 const SELF_MODE_ROUTES = [...ADMIN_CONSOLE_ROLES, SELF_MODE_USER_ROLE];
 const PLATFORM_ADMIN_ROLES = ['platform_admin'];
@@ -109,7 +117,7 @@ const RouteConfig: CustomRouteConfig[] = [
 	{
 		path: allRoutesObject.Doors.path,
 		element: <MAINROUTE.Doors />,
-		allowedTo: ADMIN_CONSOLE_ROLES,
+		allowedTo: ADMIN_HR_ROLES,
 	},
 	{
 		path: pagesNotInSideBar.UsertDetails.path,
@@ -132,9 +140,24 @@ const RouteConfig: CustomRouteConfig[] = [
 		allowedTo: ADMIN_CONSOLE_ROLES,
 	},
 	{
+		path: allRoutesObject.BookAsset.path,
+		element: <MAINROUTE.BookAsset />,
+		allowedTo: SELF_MODE_ROUTES,
+	},
+	{
+		path: pagesNotInSideBar.BookAssetDetail.path,
+		element: <MAINROUTE.BookAssetDetail />,
+		allowedTo: SELF_MODE_ROUTES,
+	},
+	{
+		path: pagesNotInSideBar.AssetItemDetail.path,
+		element: <MAINROUTE.AssetItemDetail />,
+		allowedTo: ADMIN_CONSOLE_ROLES,
+	},
+	{
 		path: allRoutesObject.AssetTypes.path,
 		element: <MAINROUTE.AssetTypes />,
-		allowedTo: ADMIN_CONSOLE_ROLES,
+		allowedTo: ADMIN_HR_ROLES,
 	},
 	{
 		path: allRoutesObject.WfhRequests.path,
@@ -144,12 +167,12 @@ const RouteConfig: CustomRouteConfig[] = [
 	{
 		path: allRoutesObject.LeaveTypes.path,
 		element: <MAINROUTE.LeaveTypes />,
-		allowedTo: ADMIN_CONSOLE_ROLES,
+		allowedTo: ADMIN_HR_ROLES,
 	},
 	{
 		path: allRoutesObject.CompOffCredits.path,
 		element: <MAINROUTE.CompOffCredits />,
-		allowedTo: ADMIN_CONSOLE_ROLES,
+		allowedTo: ADMIN_HR_ROLES,
 	},
 	{
 		path: allRoutesObject.LeaveManagement.path,
@@ -184,7 +207,7 @@ const RouteConfig: CustomRouteConfig[] = [
 	{
 		path: allRoutesObject.Settings.path,
 		element: <MAINROUTE.Settings />,
-		allowedTo: ADMIN_CONSOLE_ROLES,
+		allowedTo: ADMIN_HR_ROLES,
 	},
 	{
 		path: allRoutesObject.Registrations.path,

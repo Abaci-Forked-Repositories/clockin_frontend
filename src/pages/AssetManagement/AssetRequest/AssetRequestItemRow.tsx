@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Tooltip } from '@mui/material';
+import Select from 'react-select';
 import {
 	type Control,
+	Controller,
 	type FieldErrors,
 	type UseFormRegister,
 	type UseFormSetValue,
 	useWatch,
 } from 'react-hook-form';
 import { authAxios } from '../../../axiosInstance';
+import useSelectStyles from '../../../hooks/useSelectStyle';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import ReactSelectComponent from '../../../components/CustomComponent/Select/ReactSelectComponent';
 import FormGroup from '../../../components/bootstrap/forms/FormGroup';
@@ -46,6 +49,7 @@ const AssetRequestItemRow = ({
 	const { showErrorNotification } = useToasterNotification();
 	const showErrorRef = useRef(showErrorNotification);
 	showErrorRef.current = showErrorNotification;
+	const reactSelectStyle = useSelectStyles(false);
 	const [assetItemOptions, setAssetItemOptions] = useState<AssetItemOption[]>([]);
 	const [loadingItems, setLoadingItems] = useState(false);
 	const previousTypeIdRef = useRef<number | null>(null);
@@ -57,6 +61,10 @@ const AssetRequestItemRow = ({
 	}) as AssetTypeOption | null;
 
 	const selectedTypeId = selectedType?.value ?? null;
+	const selectedAssetItem = useWatch({
+		control,
+		name: `items.${index}.asset_item`,
+	}) as AssetItemOption | null;
 	const userSelectsItem = Boolean(selectedType?.user_selects_item);
 	const isConsumable = Boolean(selectedType?.is_consumable);
 	const isBookable = Boolean(selectedType?.is_bookable);
@@ -156,16 +164,50 @@ const AssetRequestItemRow = ({
 
 				{selectedType && userSelectsItem && (
 					<div className='col-12'>
-						<ReactSelectComponent
-							control={control}
-							name='Asset item *'
-							field_name={`items.${index}.asset_item`}
-							getValues={getValues}
-							errors={errors}
-							options={assetItemOptions}
-							isRequired
-							isDisable={loadingItems}
-						/>
+						<FormGroup label='Asset item *'>
+							<Controller
+								name={`items.${index}.asset_item`}
+								control={control}
+								rules={{ required: true }}
+								render={({ field }) => (
+									<Select
+										placeholder=''
+										onChange={(value) => field.onChange(value)}
+										className='react-select'
+										isClearable
+										styles={reactSelectStyle}
+										options={assetItemOptions}
+										value={field.value ?? null}
+										isDisabled={loadingItems}
+										formatOptionLabel={(option, { context }) => {
+											const item = option as AssetItemOption;
+											if (context === 'menu' && item.site_timezone) {
+												return (
+													<div>
+														<div>{item.label}</div>
+														<div className='small text-muted'>
+															{item.site_name
+																? `${item.site_name} · `
+																: ''}
+															{item.site_timezone}
+														</div>
+													</div>
+												);
+											}
+											return item.label;
+										}}
+									/>
+								)}
+							/>
+							{rowErrors?.asset_item?.type ? (
+								<span className='text-danger small'>*This field is required</span>
+							) : null}
+							{selectedAssetItem?.site_timezone ? (
+								<div className='small text-muted mt-1'>
+									Times use site timezone: {selectedAssetItem.site_timezone}
+								</div>
+							) : null}
+						</FormGroup>
 					</div>
 				)}
 
@@ -190,12 +232,12 @@ const AssetRequestItemRow = ({
 
 				{selectedType && isBookable && (
 					<>
-						<div className='col-md-6'>
-							<FormGroup label='Start date *'>
+						<div className='col-12'>
+							<FormGroup label='Start date & time *'>
 								<input
-									type='date'
+									type='datetime-local'
+									step={60}
 									className='form-control'
-									style={{ height: '40px' }}
 									{...register(`items.${index}.start_date`, { required: true })}
 								/>
 								{rowErrors?.start_date?.type && (
@@ -203,12 +245,12 @@ const AssetRequestItemRow = ({
 								)}
 							</FormGroup>
 						</div>
-						<div className='col-md-6'>
-							<FormGroup label='End date *'>
+						<div className='col-12'>
+							<FormGroup label='End date & time *'>
 								<input
-									type='date'
+									type='datetime-local'
+									step={60}
 									className='form-control'
-									style={{ height: '40px' }}
 									{...register(`items.${index}.end_date`, { required: true })}
 								/>
 								{rowErrors?.end_date?.type && (

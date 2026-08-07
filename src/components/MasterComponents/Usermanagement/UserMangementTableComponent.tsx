@@ -9,7 +9,7 @@ import { formatFilters, resolveTableRowUserId, userDetailsPath } from '../../../
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../../contexts/authContext';
-import { isPrivilegedToggleMode, resolveTenantRouteRole } from '../../../helpers/roleToggleUtils';
+import { isAdminOrHrToggleMode, resolveTenantRouteRole } from '../../../helpers/roleToggleUtils';
 import { useSelector } from 'react-redux';
 import EditButton from '../../CustomComponent/Buttons/EditButton';
 import ImageCell from '../../CustomComponent/Imagecell';
@@ -27,7 +27,7 @@ const UserManagementTableComponent = (props) => {
 	const { userData } = useContext(AuthContext);
 	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
 	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
-	const canShowUserActions = isPrivilegedToggleMode(userData, mode);
+	const canShowUserActions = isAdminOrHrToggleMode(userData, mode);
 	const navigate = useNavigate();
 
 

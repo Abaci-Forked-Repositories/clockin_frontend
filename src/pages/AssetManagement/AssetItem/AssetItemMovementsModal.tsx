@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import dayjs from 'dayjs';
 import Modal, { ModalBody, ModalHeader, ModalTitle } from '../../../components/bootstrap/Modal';
 import CustomSpinner from '../../../components/CustomSpinner/CustomSpinner';
-import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import { authAxios } from '../../../axiosInstance';
 import useDarkMode from '../../../hooks/useDarkMode';
 import useToasterNotification from '../../../hooks/useToasterNotification';
+import AssetMovementCard from './AssetMovementCard';
+import { sortMovementsNewestFirst, toMovementList } from './assetMovementUtils';
 
 export type AssetItemMovementsContext = {
 	assetId?: number | string;
@@ -18,48 +18,6 @@ type AssetItemMovementsModalProps = {
 	isOpen: boolean;
 	setIsOpen: (open: boolean) => void;
 	context: AssetItemMovementsContext | null;
-};
-
-const labelStyle = (muted: string) => ({
-	fontSize: '0.7rem',
-	fontWeight: 600,
-	letterSpacing: '0.06em',
-	textTransform: 'uppercase' as const,
-	color: muted,
-	marginBottom: 4,
-});
-
-const toList = (data: unknown): any[] => {
-	if (Array.isArray(data)) return data;
-	if (data != null && typeof data === 'object' && Array.isArray((data as { results?: unknown[] }).results)) {
-		return (data as { results: unknown[] }).results;
-	}
-	return [];
-};
-
-const resolvePersonName = (value: unknown): string => {
-	if (value == null || value === '') return '';
-	if (typeof value === 'string') return value.trim();
-	if (typeof value === 'number') return `User #${value}`;
-	if (typeof value === 'object') {
-		const record = value as Record<string, unknown>;
-		const name = String(record.name || '').trim();
-		if (name) return name;
-		const full = [record.first_name, record.last_name].filter(Boolean).join(' ').trim();
-		if (full) return full;
-		if (record.id != null) return `User #${record.id}`;
-	}
-	return '';
-};
-
-const movementTypeLabel = (movement: any): string =>
-	String(movement?.movement_type_display || movement?.movement_type || '').trim() || '----';
-
-const formatMovementDate = (value: unknown): string => {
-	const raw = String(value || '').trim();
-	if (!raw) return '----';
-	const parsed = dayjs(raw);
-	return parsed.isValid() ? parsed.format('DD MMM YYYY, HH:mm') : raw.slice(0, 16);
 };
 
 const AssetItemMovementsModal = ({
@@ -86,6 +44,7 @@ const AssetItemMovementsModal = ({
 	const textSubtle = darkModeStatus ? '#6b7280' : '#9ca3af';
 	const cardBg = darkModeStatus ? 'rgba(255,255,255,0.04)' : '#ffffff';
 	const border = darkModeStatus ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)';
+	const theme = { textPrimary, textMuted, textSubtle, cardBg, border };
 
 	useEffect(() => {
 		if (!isOpen || assetId == null) {
@@ -100,13 +59,7 @@ const AssetItemMovementsModal = ({
 			.get('/api/hr/asset-movements/', { params: { asset: assetId, paginate: 'off' } })
 			.then((res) => {
 				if (cancelled) return;
-				const rows = toList(res?.data);
-				const sorted = [...rows].sort((a, b) =>
-					String(b?.movement_date || b?.created_at || '').localeCompare(
-						String(a?.movement_date || a?.created_at || ''),
-					),
-				);
-				setMovements(sorted);
+				setMovements(sortMovementsNewestFirst(toMovementList(res?.data)));
 			})
 			.catch((err) => {
 				if (!cancelled) {
@@ -146,78 +99,13 @@ const AssetItemMovementsModal = ({
 					</p>
 				) : (
 					<div className='d-flex flex-column' style={{ gap: 16 }}>
-						{movements.map((movement, index) => {
-							const toUser = resolvePersonName(movement?.to_user);
-							const fromUser = resolvePersonName(movement?.from_user);
-							const performedBy = resolvePersonName(movement?.performed_by);
-
-							return (
-								<div
-									key={movement?.id ?? `movement-${index}`}
-									className='rounded-3 p-3'
-									style={{
-										backgroundColor: cardBg,
-										border: `1px solid ${border}`,
-									}}>
-									<div className='d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3'>
-										<div>
-											<div
-												style={{
-													color: textPrimary,
-													fontWeight: 700,
-													fontSize: '0.95rem',
-												}}>
-												{toUser || '----'}
-											</div>
-											{fromUser ? (
-												<div className='small mt-1' style={{ color: textMuted }}>
-													From: {fromUser}
-												</div>
-											) : null}
-										</div>
-										<StatusBadge
-											status={movement?.movement_type}
-											label={movementTypeLabel(movement)}
-											emptyFallback='----'
-										/>
-									</div>
-
-									<div className='row g-3'>
-										<div className='col-6 col-md-3'>
-											<div style={labelStyle(textSubtle)}>Date</div>
-											<div style={{ color: textPrimary, fontWeight: 600 }}>
-												{formatMovementDate(movement?.movement_date)}
-											</div>
-										</div>
-										{performedBy ? (
-											<div className='col-6 col-md-3'>
-												<div style={labelStyle(textSubtle)}>Performed by</div>
-												<div style={{ color: textPrimary, fontWeight: 600 }}>
-													{performedBy}
-												</div>
-											</div>
-										) : null}
-										{movement?.quantity != null && movement?.quantity !== '' ? (
-											<div className='col-6 col-md-3'>
-												<div style={labelStyle(textSubtle)}>Qty</div>
-												<div style={{ color: textPrimary, fontWeight: 600 }}>
-													{String(movement.quantity)}
-												</div>
-											</div>
-										) : null}
-									</div>
-
-									{movement?.remarks ? (
-										<div className='mt-3'>
-											<div style={labelStyle(textSubtle)}>Remarks</div>
-											<div style={{ color: textMuted, fontSize: '0.9rem' }}>
-												{String(movement.remarks)}
-											</div>
-										</div>
-									) : null}
-								</div>
-							);
-						})}
+						{movements.map((movement, index) => (
+							<AssetMovementCard
+								key={movement?.id ?? `movement-${index}`}
+								movement={movement}
+								theme={theme}
+							/>
+						))}
 					</div>
 				)}
 			</ModalBody>

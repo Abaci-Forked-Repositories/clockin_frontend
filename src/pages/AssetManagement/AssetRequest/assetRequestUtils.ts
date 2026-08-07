@@ -3,6 +3,7 @@ export const ASSET_REQUEST_STATUS_LOOKUP: Record<string, string> = {
 	APPLIED: 'Applied',
 	APPROVED: 'Approved',
 	PARTIAL: 'Partial',
+	COMPLETED: 'Completed',
 	REJECTED: 'Rejected',
 	CANCELLED: 'Cancelled',
 };
@@ -39,6 +40,8 @@ export type AssetRequestDetailItem = {
 	quantity_requested?: string | number | null;
 	start_date?: string | null;
 	end_date?: string | null;
+	start_datetime?: string | null;
+	end_datetime?: string | null;
 	status?: string;
 	status_display?: string;
 	reviewed_by?: any;

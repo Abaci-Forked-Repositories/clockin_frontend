@@ -821,10 +821,12 @@ overflow-x: hidden;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	flex-wrap: nowrap;
 	gap: 6px;
 	height: 44px;
 	padding: 10px;
 	border-radius: 15px;
+	white-space: nowrap;
 }
 
 // Header: Self / Admin sliding pill toggle (segmented control)
@@ -1202,6 +1204,35 @@ overflow-x: hidden;
 		padding: 3px 7px;
 	}
 
+	.rbc-booking-event-card {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		width: 100%;
+		border-radius: 6px;
+		padding: 3px 7px;
+	}
+
+	.rbc-booking-event-card__name {
+		font-size: 0.74rem;
+		font-weight: 700;
+		line-height: 1.3;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.rbc-booking-event-card__detail {
+		display: block;
+		font-size: 0.66rem;
+		font-weight: 600;
+		line-height: 1.25;
+		opacity: 0.85;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
 	.rbc-shift-event-card__name {
 		font-size: 0.74rem;
 		font-weight: 700;
@@ -1219,6 +1250,34 @@ overflow-x: hidden;
 		opacity: 0.85;
 		white-space: normal;
 		word-break: break-word;
+	}
+}
+
+// Asset booking calendar — expand to full month, no inner scroll
+.schedule-calendar--fit,
+.schedule-calendar-grid--fit {
+	height: auto !important;
+	min-height: 0 !important;
+	overflow: visible !important;
+
+	.rbc-calendar {
+		height: auto !important;
+		min-height: 0 !important;
+	}
+
+	.rbc-month-view {
+		height: auto !important;
+		overflow: visible !important;
+	}
+
+	.rbc-month-row {
+		flex: none !important;
+		height: auto !important;
+		min-height: 7.25rem;
+	}
+
+	.rbc-row-content {
+		min-height: 5.5rem;
 	}
 }
 

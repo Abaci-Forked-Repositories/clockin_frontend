@@ -33,7 +33,15 @@ const fetchAssetItemsForType = async (typeId: number): Promise<AssetItemOption[]
 	return toList(res?.data).map(mapAssetItemToOption);
 };
 
-const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
+const AddAssetRequest = ({
+	isOpen,
+	setIsOpen,
+	tableRef,
+	title,
+	id,
+	prefillAsset = null,
+	onSuccess,
+}: any) => {
 	const {
 		register,
 		handleSubmit,
@@ -57,6 +65,41 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 	showErrorRef.current = showErrorNotification;
 	const isEdit = Boolean(id);
 
+	const buildPrefillItem = (
+		asset: Record<string, unknown>,
+		typeOpts: AssetTypeOption[],
+	) => {
+		const typeRaw =
+			asset.asset_type != null && typeof asset.asset_type === 'object'
+				? (asset.asset_type as Record<string, unknown>)
+				: null;
+		const typeId = typeRaw?.id ?? asset.asset_type;
+		const typeFromList = typeOpts.find((o) => Number(o.value) === Number(typeId));
+		const assetType: AssetTypeOption | null =
+			typeFromList ||
+			(typeId != null
+				? mapAssetTypeToOption({
+						id: typeId,
+						name: typeRaw?.name || `Asset type ${typeId}`,
+						is_consumable: typeRaw?.is_consumable ?? asset.is_consumable,
+						is_bookable: typeRaw?.is_bookable ?? asset.is_bookable,
+						user_selects_item: typeRaw?.user_selects_item ?? true,
+						is_self_requestable: typeRaw?.is_self_requestable,
+					})
+				: null);
+
+		// Keep a specific inventory item selected for submit.
+		const typeForForm = assetType
+			? { ...assetType, user_selects_item: true }
+			: null;
+
+		return {
+			...emptyAssetRequestItem(),
+			asset_type: typeForForm,
+			asset_item: mapAssetItemToOption(asset),
+		};
+	};
+
 	useEffect(() => {
 		if (!isOpen) return undefined;
 
@@ -76,9 +119,13 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 				setAssetTypeOptions(typeOpts);
 
 				if (!isEdit) {
+					const prefilled =
+						prefillAsset != null && typeof prefillAsset === 'object'
+							? buildPrefillItem(prefillAsset as Record<string, unknown>, typeOpts)
+							: emptyAssetRequestItem();
 					reset({
 						description: '',
-						items: [emptyAssetRequestItem()],
+						items: [prefilled],
 					});
 					return;
 				}
@@ -123,7 +170,7 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 			cancelled = true;
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen, id, isEdit]);
+	}, [isOpen, id, isEdit, prefillAsset]);
 
 	const onSubmit = (data: any) => {
 		const itemsError = validateAssetRequestItems(data?.items);
@@ -143,6 +190,7 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 			.then(() => {
 				setWaitingForAxios(false);
 				tableRef?.current?.onQueryChange?.();
+				onSuccess?.();
 				setIsOpen(false);
 			})
 			.catch((err) => {
@@ -185,13 +233,18 @@ const AddAssetRequest = ({ isOpen, setIsOpen, tableRef, title, id }: any) => {
 AddAssetRequest.propTypes = {
 	isOpen: PropTypes.bool.isRequired,
 	setIsOpen: PropTypes.func.isRequired,
-	tableRef: PropTypes.object.isRequired,
+	tableRef: PropTypes.object,
 	title: PropTypes.string.isRequired,
 	id: PropTypes.any,
+	prefillAsset: PropTypes.object,
+	onSuccess: PropTypes.func,
 };
 
 AddAssetRequest.defaultProps = {
 	id: null,
+	tableRef: null,
+	prefillAsset: null,
+	onSuccess: undefined,
 };
 
 export default AddAssetRequest;

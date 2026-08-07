@@ -62,6 +62,15 @@ export const canUseRoleToggle = (userData: UserDataInput = null): boolean => {
 export const isPrivilegedToggleMode = (userData: UserDataInput, mode: string): boolean =>
 	canUseRoleToggle(userData) && mode !== 'Self';
 
+/** Admin or HR only (not Manager), while in privileged (non-Self) mode. */
+export const isAdminOrHrRole = (userData: UserDataInput = null): boolean => {
+	const role = resolveTenantRouteRole(userData);
+	return role === 'Admin' || role === 'HR';
+};
+
+export const isAdminOrHrToggleMode = (userData: UserDataInput, mode: string): boolean =>
+	isAdminOrHrRole(userData) && mode !== 'Self';
+
 export const getPrivilegedToggleLabel = (userData: UserDataInput = null): string => {
 	const role = resolveTenantRouteRole(userData);
 	return ROLE_TOGGLE_TYPES.has(role) ? role : 'Admin';

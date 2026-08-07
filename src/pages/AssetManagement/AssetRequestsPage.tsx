@@ -7,7 +7,7 @@ import Card, { CardTitle } from '../../components/bootstrap/Card';
 import Page from '../../layout/Page/Page';
 import AddButton from '../../components/CustomComponent/Buttons/AddButton';
 import AuthContext from '../../contexts/authContext';
-import { isUserRole } from '../../helpers/roleToggleUtils';
+import { isSelfEquivalentMode, isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 import AssetRequests from './AssetRequest/AssetRequests';
 import AddAssetRequest from './AssetRequest/AddAssetRequest';
 
@@ -20,7 +20,8 @@ const AssetRequestsPage = () => {
 	const [searchParams] = useSearchParams();
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [editId, setEditId] = useState<any>(null);
-	const showAddAssetRequest = isUserRole(userData) || mode === 'Self';
+	const showAddAssetRequest =
+		isSelfEquivalentMode(userData, mode) || isAdminOrHrToggleMode(userData, mode);
 
 	const openAddModal = useCallback(() => {
 		setEditId(null);

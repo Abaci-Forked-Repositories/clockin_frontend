@@ -8,6 +8,7 @@ import useTablestyle from '../../../hooks/useTablestyles';
 import { formatFilters } from '../../../helpers/functions';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
+import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import { CARRY_FORWARD_OPTIONS } from './LeaveTypeFields';
 
@@ -30,8 +31,8 @@ const formatClubbableWithCell = (rowData: any): string => {
 	return parts.filter(Boolean).join(', ') || '----';
 };
 
-const booleanYesNo = (v: unknown) =>
-	v === true || v === 'true' || v === 1 || v === '1' ? 'Yes' : 'No';
+const isTruthyYes = (v: unknown) => v === true || v === 'true' || v === 1 || v === '1';
+const yesNoBadge = (v: unknown) => <StatusBadge status={isTruthyYes(v) ? 'yes' : 'no'} />;
 
 type LeaveTypeProps = {
 	tableRef: React.MutableRefObject<any>;
@@ -103,7 +104,7 @@ const LeaveType = ({ tableRef, editModalToggle, onRowClick }: LeaveTypeProps) =>
 			{
 				title: 'Clubbing',
 				field: 'clubbing_allowed',
-				render: (rowData: any) => booleanYesNo(rowData?.clubbing_allowed),
+				render: (rowData: any) => yesNoBadge(rowData?.clubbing_allowed),
 			},
 			{
 				title: 'Clubbable with',
@@ -114,7 +115,7 @@ const LeaveType = ({ tableRef, editModalToggle, onRowClick }: LeaveTypeProps) =>
 			{
 				title: 'Sandwich',
 				field: 'sandwich_applicable',
-				render: (rowData: any) => booleanYesNo(rowData?.sandwich_applicable),
+				render: (rowData: any) => yesNoBadge(rowData?.sandwich_applicable),
 			},
 		
 		],

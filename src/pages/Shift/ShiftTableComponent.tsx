@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import EditButton from '../../components/CustomComponent/Buttons/EditButton';
 import DeleteButton from '../../components/CustomComponent/Buttons/DeleteButton';
+import StatusBadge from '../../components/CustomComponent/StatusBadge';
 import { authAxios } from '../../axiosInstance';
 import useTablestyle from '../../hooks/useTablestyles';
 import { formatFilters } from '../../helpers/functions';
@@ -16,6 +17,8 @@ const timeWithoutSeconds = (value: any) => {
 	if (parts.length < 2) return value;
 	return `${parts[0]}:${parts[1]}`;
 };
+
+const yesNoBadge = (value: unknown) => <StatusBadge status={value ? 'yes' : 'no'} />;
 
 const ShiftTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 	const [filterEnabled, setFilterEnabled] = useState(false);
@@ -40,12 +43,12 @@ const ShiftTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 			{
 				title: 'First in last out',
 				field: 'first_in_last_out',
-				render: (rowData: any) => (rowData?.first_in_last_out ? 'Yes' : 'No'),
+				render: (rowData: any) => yesNoBadge(rowData?.first_in_last_out),
 			},
 			{
 				title: 'OT shift',
 				field: 'is_ot_shift',
-				render: (rowData: any) => (rowData?.is_ot_shift ? 'Yes' : 'No'),
+				render: (rowData: any) => yesNoBadge(rowData?.is_ot_shift),
 			},
 			// {
 			// 	title: 'Auto In',
@@ -92,7 +95,7 @@ const ShiftTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 			{
 				title: 'OT eligible',
 				field: 'ot_eligible',
-				render: (rowData: any) => (rowData?.ot_eligible ? 'Yes' : 'No'),
+				render: (rowData: any) => yesNoBadge(rowData?.ot_eligible),
 			},
 			{
 				title: 'Max OT hours',

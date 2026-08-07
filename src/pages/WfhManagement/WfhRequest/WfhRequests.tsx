@@ -14,7 +14,7 @@ import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import Button from '../../../components/bootstrap/Button';
-import { isSelfEquivalentMode } from '../../../helpers/roleToggleUtils';
+import { isSelfEquivalentMode, isAdminOrHrToggleMode } from '../../../helpers/roleToggleUtils';
 import WfhRequestActionButtons from './WfhRequestActionButtons';
 import WfhApprovalTimelineModal, {
 	type WfhApprovalTimelineContext,
@@ -43,6 +43,7 @@ const WfhRequests = ({
 	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
 	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
 	const isSelfMode = isSelfEquivalentMode(userData, mode);
+	const canEditPrivilegedWfh = isAdminOrHrToggleMode(userData, mode);
 	const userIdFilter = isSelfMode && userData?.id ? `user=${userData.id}` : '';
 	const scopeFilters = userIdFilter;
 
@@ -68,12 +69,13 @@ const WfhRequests = ({
 
 	const showEditWfhRequest = useCallback(
 		(rowData: any) =>
-			!isSelfMode ||
-			isEditableWfhRequestStatus(
-				wfhRequestRowStatus(rowData),
-				wfhRequestStatusCode(rowData),
-			),
-		[isSelfMode],
+			canEditPrivilegedWfh ||
+			(isSelfMode &&
+				isEditableWfhRequestStatus(
+					wfhRequestRowStatus(rowData),
+					wfhRequestStatusCode(rowData),
+				)),
+		[canEditPrivilegedWfh, isSelfMode],
 	);
 
 	const staticColumns = useMemo(

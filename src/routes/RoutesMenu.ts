@@ -65,6 +65,10 @@ export const allRoutesObject = {
 		id: 'Assets',
 		path: '/assets',
 	},
+	BookAsset: {
+		id: 'BookAsset',
+		path: '/book-asset',
+	},
 	AssetTypes: {
 		id: 'AssetTypes',
 		path: '/asset-types',
@@ -312,8 +316,33 @@ export const CompanyAdminRoutes = {
 	},
 };
 
-
-
+/** Manager menu — same as company admin minus HR/Admin-only sections. */
+export const ManagerRoutes = {
+	dashboard: CompanyAdminRoutes.dashboard,
+	organization: CompanyAdminRoutes.organization,
+	scheduling: CompanyAdminRoutes.scheduling,
+	leaveAndCompOff: {
+		id: 'LeaveAndCompOff',
+		text: 'Leave & Comp Off',
+		path: 'leave-and-comp-off',
+		icon: 'EventNote',
+		subMenu: {
+			LeaveRequests: CompanyAdminRoutes.leaveAndCompOff.subMenu.LeaveRequests,
+		},
+	},
+	assets: {
+		id: 'AssetsGroup',
+		text: 'Assets',
+		path: 'assets-group',
+		icon: 'Inventory',
+		subMenu: {
+			Assets: CompanyAdminRoutes.assets.subMenu.Assets,
+			AssetRequests: CompanyAdminRoutes.assets.subMenu.AssetRequests,
+		},
+	},
+	remoteWork: CompanyAdminRoutes.remoteWork,
+	attendanceGroup: CompanyAdminRoutes.attendanceGroup,
+};
 
 export const UserRoutes = {
 	LeaveRequests: {
@@ -321,6 +350,12 @@ export const UserRoutes = {
 		text: 'Leave Requests',
 		path: '/leave-requests',
 		icon: 'Event',
+	},
+	BookAsset: {
+		id: 'BookAsset',
+		text: 'Asset Inventory',
+		path: '/book-asset',
+		icon: 'EventAvailable',
 	},
 	AssetRequests: {
 		id: 'AssetRequests',
@@ -393,8 +428,6 @@ export const PartnerRoutes = {
 };
 
 export const HRRoutes = CompanyAdminRoutes;
-export const ManagerRoutes = CompanyAdminRoutes;
-
 
 export const roleWiseRoutes: Record<string, any> = {
 	Admin: CompanyAdminRoutes,
@@ -436,6 +469,18 @@ export const pagesNotInSideBar = {
 		id: 'GroupTemplateDetail',
 		text: 'Group details',
 		path: '/group-details/:id',
+		icon: '',
+	},
+	AssetItemDetail: {
+		id: 'AssetItemDetail',
+		text: 'Asset Details',
+		path: '/asset-details/:id',
+		icon: '',
+	},
+	BookAssetDetail: {
+		id: 'BookAssetDetail',
+		text: 'Book Asset Details',
+		path: '/book-asset/:id',
 		icon: '',
 	},
 	CustomerDetails: {

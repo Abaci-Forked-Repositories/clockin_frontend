@@ -31,6 +31,15 @@ const resolveShiftsMap = (raw: unknown): Record<string, ShiftTimeEntry> | null =
 	return null;
 };
 
+/** e.g. `{ "Day Shift": { start_time, end_time } }` → `["Day Shift"]` */
+export const shiftNamesFromShiftsField = (raw: unknown): string[] => {
+	const map = resolveShiftsMap(raw);
+	if (!map) return [];
+	return Object.keys(map)
+		.map((name) => String(name || '').trim())
+		.filter(Boolean);
+};
+
 /** e.g. `{ "Day Shift": { start_time, end_time } }` → `["Day Shift 09:00–18:00"]` */
 export const shiftLabelsFromShiftsField = (raw: unknown): string[] => {
 	const map = resolveShiftsMap(raw);
@@ -50,12 +59,18 @@ export const shiftLabelsFromShiftsField = (raw: unknown): string[] => {
 		.filter((line): line is string => Boolean(line));
 };
 
-export const summarizeShiftLabels = (labels: string[], maxShown = 2): string => {
+/** Max shift names shown in a month-calendar day cell. */
+export const CALENDAR_CELL_MAX_SHIFT_NAMES = 3;
+
+export const summarizeShiftLabels = (
+	labels: string[],
+	maxShown = CALENDAR_CELL_MAX_SHIFT_NAMES,
+): string => {
 	if (!labels.length) return '';
 	const shown = labels.slice(0, maxShown);
 	const body = shown.join('\n');
 	if (labels.length > maxShown) {
-		return body ? `${body}\n...` : '...';
+		return body ? `${body}\n+${labels.length - maxShown} more` : `+${labels.length - maxShown} more`;
 	}
 	return body;
 };

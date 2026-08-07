@@ -1,4 +1,5 @@
 import React, { useContext, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import SubHeader, {
 	SubHeaderLeft,
 	SubHeaderRight,
@@ -17,6 +18,7 @@ import usePermissionHook from '../../hooks/userPermissionHook';
 import AuthContext from '../../contexts/authContext';
 import ButtonFiltter from '../../components/CustomComponent/Filters/ButtonFiltter';
 import AddGroup from './AddGroup';
+import { isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 
 const Index = () => {
 
@@ -26,16 +28,21 @@ const Index = () => {
 	const [addBulkModalShow, setAddBulkModalShow] = useState(false);
 	const [editId, setEditId] = useState<any>(null);
 	const {userData}=useContext(AuthContext)
+	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
+	const canAddOrEditGroups = isAdminOrHrToggleMode(userData, mode);
 	const tenant = userData?.active_relations?.[0]?.tenant_details || null;
 	const [activeTab, setActiveTab] = useState('All')
 	const FilterStatus = ['All', tenant ? tenant?.tenant_name : '']
 	const canSeeTenantFilter=usePermissionHook('view_tenant_filter');	
 	const editModalToggle = (id: any) => {
+		if (!canAddOrEditGroups) return;
 		setEditId(id);
 		setAddModalShow(true);
 	}
 
 	const openAddModal = (state: boolean) => {
+		if (state && !canAddOrEditGroups) return;
 		if (state) setEditId(null);
 		setAddModalShow(state);
 	};
@@ -73,7 +80,9 @@ const Index = () => {
 
 					</SubHeaderLeft>
 					<SubHeaderRight>
-					 <AddButton modalShow={openAddModal} name='Add Group' />
+						{canAddOrEditGroups ? (
+							<AddButton modalShow={openAddModal} name='Add Group' />
+						) : null}
 					</SubHeaderRight>
 				</SubHeader>
 				<Card stretch>

@@ -18,6 +18,8 @@ import ButtonWithPopover from '../../components/CustomComponent/Buttons/ButtonWi
 import usePermissionHook from '../../hooks/userPermissionHook';
 import AuthContext from '../../contexts/authContext';
 import ButtonFiltter from '../../components/CustomComponent/Filters/ButtonFiltter';
+import { useSelector } from 'react-redux';
+import { isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 
 export type UserCrudModel = {
 	email: string;
@@ -49,11 +51,15 @@ const Index = () => {
 	const [editUserId, setEditUserId] = useState<number | string | null>(null);
 	const [addBulkModalShow, setAddBulkModalShow] = useState(false);
 	const {userData}=useContext(AuthContext)
+	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
+	const canAddOrEditUsers = isAdminOrHrToggleMode(userData, mode);
 	const tenant = userData?.active_relations?.[0]?.tenant_details || null;
 	const [activeTab, setActiveTab] = useState('All')
 	const FilterStatus = ['All', tenant ? tenant?.tenant_name : '']
 	const canSeeTenantFilter=usePermissionHook('view_tenant_filter');	
 	const editModalToggle = (id: any) => {
+		if (!canAddOrEditUsers) return;
 		setEditUserId(id);
 		setEditModalShow(true);
 	};
@@ -107,11 +113,13 @@ const Index = () => {
 
 					</SubHeaderLeft>
 					<SubHeaderRight>
-						<ButtonWithPopover
-							addModalShow={setAddModalShow}
-							addBulkModalShow={setAddBulkModalShow}
-							buttonName='Add User'
-						/>
+						{canAddOrEditUsers ? (
+							<ButtonWithPopover
+								addModalShow={setAddModalShow}
+								addBulkModalShow={setAddBulkModalShow}
+								buttonName='Add User'
+							/>
+						) : null}
 					</SubHeaderRight>
 				</SubHeader>
 				<Card stretch>

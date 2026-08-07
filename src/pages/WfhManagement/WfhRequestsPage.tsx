@@ -7,7 +7,7 @@ import Card, { CardTitle } from '../../components/bootstrap/Card';
 import Page from '../../layout/Page/Page';
 import AddButton from '../../components/CustomComponent/Buttons/AddButton';
 import AuthContext from '../../contexts/authContext';
-import { isSelfEquivalentMode } from '../../helpers/roleToggleUtils';
+import { isSelfEquivalentMode, isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 import WfhRequests from './WfhRequest/WfhRequests';
 import AddWfhRequest from './WfhRequest/AddWfhRequest';
 
@@ -20,7 +20,8 @@ const WfhRequestsPage = () => {
 	const [searchParams] = useSearchParams();
 	const [isFormOpen, setIsFormOpen] = useState(false);
 	const [editId, setEditId] = useState<any>(null);
-	const showAddWfhRequest = isSelfEquivalentMode(userData, mode);
+	const showAddWfhRequest =
+		isSelfEquivalentMode(userData, mode) || isAdminOrHrToggleMode(userData, mode);
 
 	const openAddModal = useCallback(() => {
 		setEditId(null);

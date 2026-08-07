@@ -57,11 +57,15 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
 	// Asset item statuses
 	available: { styleKey: 'Active', icon: 'CheckCircle', label: 'Available' },
 	assigned: { styleKey: 'Completed', icon: 'Person', label: 'Assigned' },
+	returned: { styleKey: 'Scheduled', icon: 'AssignmentReturn', label: 'Returned' },
 	in_use: { styleKey: 'Scheduled', icon: 'Laptop', label: 'In Use' },
 	under_maintenance: { styleKey: 'Inactive', icon: 'Build', label: 'Under Maintenance' },
 	damaged: { styleKey: 'Cancelled', icon: 'BrokenImage', label: 'Damaged' },
 	lost: { styleKey: 'Cancelled', icon: 'SearchOff', label: 'Lost' },
 	disposed: { styleKey: 'Check', icon: 'DeleteForever', label: 'Disposed' },
+	completed: { styleKey: 'Completed', icon: 'TaskAlt', label: 'Completed' },
+	yes: { styleKey: 'Active', icon: 'CheckCircle', label: 'Yes' },
+	no: { styleKey: 'Cancelled', icon: 'Cancel', label: 'No' },
 };
 
 const getPillStyles = (styleKey: string, themeStatus: string): PillStyle => {
@@ -189,21 +193,22 @@ const StatusBadge = ({
 				style={{
 					display: 'inline-flex',
 					alignItems: 'center',
-					gap: '6px',
-					padding: '6px 14px',
+					gap: '4px',
+					padding: '2px 8px',
 					background: badgeStyles.bg,
 					color: badgeStyles.color,
-					borderRadius: '20px',
-					fontSize: '12px',
+					borderRadius: '12px',
+					fontSize: '11px',
 					fontWeight: 600,
-					letterSpacing: '0.3px',
+					letterSpacing: '0.2px',
+					lineHeight: 1.4,
 					whiteSpace: 'nowrap',
 				}}>
 				<Icon
 					icon={icon}
 					className='flex-shrink-0'
 					style={{
-						fontSize: '16px',
+						fontSize: '13px',
 						width: '1em',
 						height: '1em',
 						color: badgeStyles.color,

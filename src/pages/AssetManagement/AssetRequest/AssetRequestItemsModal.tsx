@@ -13,6 +13,7 @@ import {
 	resolveAssetRequestItems,
 	type AssetRequestDetailItem,
 } from './assetRequestUtils';
+import { formatBookingDatetimeDisplay, resolveAssetItemSiteTimezone } from './assetRequestItemUtils';
 
 export type AssetRequestItemsModalContext = {
 	assetRequestId?: number | string;
@@ -26,7 +27,7 @@ type AssetRequestItemsModalProps = {
 	setIsOpen: (open: boolean) => void;
 	context: AssetRequestItemsModalContext | null;
 	tableRef?: React.MutableRefObject<any> | null;
-	/** When false (e.g. Self mode), hide assign / approve / reject / cancel / return. */
+	/** When false (e.g. Self mode), hide assign / approve / reject / cancel. */
 	showItemActions?: boolean;
 };
 
@@ -197,6 +198,9 @@ const AssetRequestItemsModal = ({
 												'',
 										)
 									: '';
+							const bookingStart = item?.start_datetime ?? item?.start_date;
+							const bookingEnd = item?.end_datetime ?? item?.end_date;
+							const siteTz = resolveAssetItemSiteTimezone(item?.asset_item);
 
 							return (
 								<div
@@ -230,30 +234,46 @@ const AssetRequestItemsModal = ({
 									</div>
 
 									{(qty != null && qty !== '') ||
-									item?.start_date ||
-									item?.end_date ? (
+									bookingStart ||
+									bookingEnd ? (
 										<div className='row g-3 mb-3'>
 											{qty != null && qty !== '' ? (
-												<div className='col-6 col-md-3'>
+												<div className='col-12'>
 													<div style={labelStyle(textSubtle)}>Qty</div>
 													<div style={{ color: textPrimary, fontWeight: 600 }}>
 														{String(qty)}
 													</div>
 												</div>
 											) : null}
-											{item?.start_date ? (
-												<div className='col-6 col-md-3'>
-													<div style={labelStyle(textSubtle)}>Start</div>
-													<div style={{ color: textPrimary, fontWeight: 600 }}>
-														{String(item.start_date).slice(0, 10)}
+											{siteTz.label && (bookingStart || bookingEnd) ? (
+												<div className='col-12'>
+													<div className='small' style={{ color: textMuted }}>
+														Times in site timezone:{' '}
+														<span style={{ fontWeight: 600, color: textPrimary }}>
+															{siteTz.label}
+														</span>
 													</div>
 												</div>
 											) : null}
-											{item?.end_date ? (
-												<div className='col-6 col-md-3'>
-													<div style={labelStyle(textSubtle)}>End</div>
+											{bookingStart ? (
+												<div className='col-12'>
+													<div style={labelStyle(textSubtle)}>Booking start</div>
 													<div style={{ color: textPrimary, fontWeight: 600 }}>
-														{String(item.end_date).slice(0, 10)}
+														{formatBookingDatetimeDisplay(
+															bookingStart,
+															siteTz.iana,
+														)}
+													</div>
+												</div>
+											) : null}
+											{bookingEnd ? (
+												<div className='col-12'>
+													<div style={labelStyle(textSubtle)}>Booking end</div>
+													<div style={{ color: textPrimary, fontWeight: 600 }}>
+														{formatBookingDatetimeDisplay(
+															bookingEnd,
+															siteTz.iana,
+														)}
 													</div>
 												</div>
 											) : null}
@@ -269,40 +289,8 @@ const AssetRequestItemsModal = ({
 											Boolean(actions?.can_approve) && !canAssignItem;
 										const canReject = Boolean(actions?.can_reject);
 										const canCancel = Boolean(actions?.can_cancel);
-										const itemStatus = String(item?.status || '')
-											.trim()
-											.toUpperCase();
-										const assetItemStatus = String(
-											(typeof item?.asset_item === 'object' &&
-												item.asset_item != null
-												? item.asset_item.status
-												: '') || '',
-										)
-											.trim()
-											.toUpperCase();
-										const hasAssetItem =
-											(typeof item?.asset_item === 'object' &&
-												item.asset_item != null &&
-												item.asset_item.id != null) ||
-											(item?.asset_item != null && item?.asset_item !== '');
-										const isConsumable = Boolean(
-											typeof item?.asset_type === 'object' &&
-											item.asset_type != null
-												? item.asset_type.is_consumable
-												: false,
-										);
-										const canReturn =
-											!isConsumable &&
-											hasAssetItem &&
-											(itemStatus === 'ASSIGNED' ||
-												itemStatus === 'APPROVED' ||
-												assetItemStatus === 'ASSIGNED');
 										const hasActions =
-											canApprove ||
-											canReject ||
-											canCancel ||
-											canAssignItem ||
-											canReturn;
+											canApprove || canReject || canCancel || canAssignItem;
 										if (!hasActions || requestId == null || item?.id == null) {
 											return null;
 										}
@@ -323,7 +311,7 @@ const AssetRequestItemsModal = ({
 														onAssigned={refreshAfterAction}
 													/>
 												) : null}
-												{(canApprove || canReject || canCancel || canReturn) && (
+												{(canApprove || canReject || canCancel) && (
 													<div className='d-flex justify-content-end'>
 														<AssetRequestActionButtons
 															id={requestId}
@@ -333,7 +321,6 @@ const AssetRequestItemsModal = ({
 															canApprove={canApprove}
 															canReject={canReject}
 															canCancel={canCancel}
-															canReturn={canReturn}
 														/>
 													</div>
 												)}

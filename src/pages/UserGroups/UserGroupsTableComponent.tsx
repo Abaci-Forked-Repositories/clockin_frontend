@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import MaterialTable from '@material-table/core';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
@@ -9,9 +10,15 @@ import useTablestyle from '../../hooks/useTablestyles';
 import { formatFilters } from '../../helpers/functions';
 import useToasterNotification from '../../hooks/useToasterNotification';
 import EditButton from '../../components/CustomComponent/Buttons/EditButton';
+import AuthContext from '../../contexts/authContext';
+import { isAdminOrHrToggleMode } from '../../helpers/roleToggleUtils';
 
 const UserGroupsTableComponent = ({ tableRef, urlBackup,editModalToggle }: any) => {
 	const navigate = useNavigate();
+	const { userData } = useContext(AuthContext);
+	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
+	const canShowGroupActions = isAdminOrHrToggleMode(userData, mode);
 	const [filterEnabled, setFilterEnabled] = useState(false);
 	const [pageSize, setPageSize] = useState(5);
 	const [sortState, setSortState] = useState({ orderBy: null, orderDirection: 'asc' });
@@ -91,38 +98,25 @@ const UserGroupsTableComponent = ({ tableRef, urlBackup,editModalToggle }: any) 
 		[],
 	);
 	
-	const actionButtons =[
-		{
-			title: 'Actions',
-			align: 'right',
-			removable: false,
-			sorting: false,
-			grouping: false,
-			filtering: false,
-			render: (rowData) => (
-				<div className='d-flex gap-1 justify-content-end'>
-					{/* {rowData?.meta_data?.status !== 'Invited' && (
-						<StatusButton
-							status={rowData.meta_data.status}
-							fieldKey='status'
-							tableRef={tableRef}
-							api={`api/users/${rowData.id}`}
-						/>
-					)}
-
-                    {rowData?.meta_data?.status === 'Invited' && (
-                         <ResendButton id={rowData.id}/>						
-					)} */}
-					<EditButton modalShow={editModalToggle} id={rowData.id} />
-				</div>
-			),
-		},
-	]
-
 	const columns = useMemo(() => {
-        return [...staticColumns , ...actionButtons];
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+		if (!canShowGroupActions) return staticColumns;
+		return [
+			...staticColumns,
+			{
+				title: 'Actions',
+				align: 'right',
+				removable: false,
+				sorting: false,
+				grouping: false,
+				filtering: false,
+				render: (rowData) => (
+					<div className='d-flex gap-1 justify-content-end'>
+						<EditButton modalShow={editModalToggle} id={rowData.id} />
+					</div>
+				),
+			},
+		];
+    }, [staticColumns, canShowGroupActions, editModalToggle]);
 
 	return (
 		<div className='material-table-wrapper'>

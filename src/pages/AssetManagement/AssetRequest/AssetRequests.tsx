@@ -14,7 +14,7 @@ import StatusBadge from '../../../components/CustomComponent/StatusBadge';
 import EditButton from '../../../components/CustomComponent/Buttons/EditButton';
 import Card, { CardBody } from '../../../components/bootstrap/Card';
 import Button from '../../../components/bootstrap/Button';
-import { isSelfEquivalentMode } from '../../../helpers/roleToggleUtils';
+import { isSelfEquivalentMode, isAdminOrHrToggleMode } from '../../../helpers/roleToggleUtils';
 import AssetRequestCommentsModal, {
 	type AssetRequestCommentsContext,
 } from './AssetRequestCommentsModal';
@@ -45,6 +45,7 @@ const AssetRequests = ({
 	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
 	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
 	const isSelfMode = isSelfEquivalentMode(userData, mode);
+	const canEditPrivilegedAsset = isAdminOrHrToggleMode(userData, mode);
 	const userIdFilter = isSelfMode && userData?.id ? `user=${userData.id}` : '';
 	const scopeFilters = userIdFilter;
 
@@ -81,12 +82,13 @@ const AssetRequests = ({
 
 	const showEditAssetRequest = useCallback(
 		(rowData: any) =>
-			!isSelfMode ||
-			isEditableAssetRequestStatus(
-				assetRequestRowStatus(rowData),
-				assetRequestStatusCode(rowData),
-			),
-		[isSelfMode],
+			canEditPrivilegedAsset ||
+			(isSelfMode &&
+				isEditableAssetRequestStatus(
+					assetRequestRowStatus(rowData),
+					assetRequestStatusCode(rowData),
+				)),
+		[canEditPrivilegedAsset, isSelfMode],
 	);
 
 	const staticColumns = useMemo(
@@ -129,6 +131,7 @@ const AssetRequests = ({
 							title='View requested items'>
 							<StatusBadge
 								status={assetRequestStatusCode(rowData) || displayStatus}
+								label={rowData?.status_display}
 								emptyFallback='----'
 							/>
 						</button>

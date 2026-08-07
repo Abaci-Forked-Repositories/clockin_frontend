@@ -27,37 +27,31 @@ const DateAndTimeComponent = () => {
 		<div
 			className='header-toolbar-pill'
 			style={{
-				width: dayName === 'WEDNESDAY' ? '240px' : '230px',
+				width: 'auto',
+				minWidth: dayName === 'WEDNESDAY' ? '240px' : '230px',
 				backgroundColor: '#FAC600',
 				userSelect: 'none',
+				flexShrink: 0,
 			}}>
 			<Icon size='lg' icon='AccessTime' className='clock_icon_style' color='dark' />
-			<p style={{ margin: 0, color: 'black', fontSize: '11px', lineHeight: 1 }}>
-				{moment(currentTime).format('LT')}
-			</p>
-			<div style={{ borderLeft: '1px solid black' }} />
 			<p
 				style={{
 					margin: 0,
 					color: 'black',
 					fontSize: '11px',
 					lineHeight: 1,
-				}}>{`${dayOfMonth}  ${monthAsString}  ${year}  ${dayName} `}</p>
-			{/* <div style={{ borderLeft: '1px solid black' }} /> */}
-			{/* <Popovers
-                    desc={
-                        <DatePicker
-                            date={currentTime}
-                            color={process.env.REACT_APP_PRIMARY_COLOR}
-                        />
-                    }
-                    placement='bottom-end'
-                    className='mw-100'
-                    trigger='click'>
-                    <div style={{ cursor: 'pointer' }}>
-                        <Icon size='lg' icon='Event' className='clock_icon_style' color='dark' />
-                    </div>
-                </Popovers> */}
+					whiteSpace: 'nowrap',
+				}}>
+				{moment(currentTime).format('LT')}
+			</p>
+			<p
+				style={{
+					margin: 0,
+					color: 'black',
+					fontSize: '11px',
+					lineHeight: 1,
+					whiteSpace: 'nowrap',
+				}}>{`${dayOfMonth}  ${monthAsString}  ${year}  ${dayName}`}</p>
 		</div>
 	);
 };

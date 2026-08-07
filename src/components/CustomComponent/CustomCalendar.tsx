@@ -24,6 +24,7 @@ type CustomCalendarProps = {
 	 */
 	onDateClick?: (date: Date) => void;
 	height?: string;
+	className?: string;
 	startAccessor?: string;
 	endAccessor?: string;
 	toolbar?: boolean;
@@ -36,6 +37,7 @@ const CustomCalendar = ({
 	onNavigate,
 	onDateClick,
 	height = '85vh',
+	className,
 	startAccessor = 'start',
 	endAccessor = 'end',
 	toolbar = false,
@@ -73,6 +75,31 @@ const CustomCalendar = ({
 		const text = String(event?.title || '');
 		const lines = text.split('\n').filter(Boolean);
 		const [primary, ...detailLines] = lines;
+
+		if (event?.resource?.kind === 'booking') {
+			const accent = String(event?.color || '#3174ad');
+			const rangeLabel =
+				event?.resource?.startDateKey !== event?.resource?.endDateKey
+					? `${event.resource.startDateKey} → ${event.resource.endDateKey}`
+					: event.resource.startDateKey;
+			return (
+				<span
+					className='rbc-booking-event-card'
+					title={`${text.replace(/\n/g, ' ')} (${rangeLabel})`}
+					style={{
+						background: statusColorLightBackground(accent, '28'),
+						color: accent,
+						borderLeft: `3px solid ${accent}`,
+					}}>
+					{primary && <span className='rbc-booking-event-card__name'>{primary}</span>}
+					{detailLines.map((line, index) => (
+						<span key={index} className='rbc-booking-event-card__detail'>
+							{line}
+						</span>
+					))}
+				</span>
+			);
+		}
 
 		if (event?.resource?.kind === 'shift') {
 			const accent = String(event?.color || '#495057');
@@ -126,7 +153,13 @@ const CustomCalendar = ({
 
 	return (
 		<div
-			className={`schedule-calendar-grid${onDateClick ? ' schedule-calendar-grid--clickable' : ''}`}
+			className={[
+				'schedule-calendar-grid',
+				onDateClick ? 'schedule-calendar-grid--clickable' : '',
+				className || '',
+			]
+				.filter(Boolean)
+				.join(' ')}
 			style={{ height, width: '100%' }}>
 			<Calendar
 				localizer={localizer}
@@ -196,6 +229,7 @@ CustomCalendar.defaultProps = {
 	onNavigate: undefined,
 	onDateClick: undefined,
 	height: '85vh',
+	className: undefined,
 	startAccessor: 'start',
 	endAccessor: 'end',
 	toolbar: false,

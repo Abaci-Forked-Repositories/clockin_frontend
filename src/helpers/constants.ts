@@ -513,6 +513,7 @@ export const statusColorCodes:any = {
   PENDING:'#FFD600',
   APPLIED:'#FFD600',
   PARTIAL:'#D97706',
+  COMPLETED:'#46BCAA',
   INVITED:'#4D69FA',
  
 

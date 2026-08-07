@@ -31,6 +31,7 @@ import LeaveRequestsTodaySummary from './LeaveRequestsTodaySummary';
 import {
 	isPrivilegedToggleMode,
 	isSelfEquivalentMode,
+	isAdminOrHrToggleMode,
 } from '../../../helpers/roleToggleUtils';
 import {
 	LEAVE_STATUS_LOOKUP,
@@ -113,6 +114,7 @@ const LeaveRequests = ({
 	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
 	const isPrivilegedMode = isPrivilegedToggleMode(userData, mode);
 	const isSelfMode = isSelfEquivalentMode(userData, mode);
+	const canEditPrivilegedLeave = isAdminOrHrToggleMode(userData, mode);
 	const userIdFilter = isSelfMode && userData?.id ? `user=${userData.id}` : '';
 	const scopeFilters = userIdFilter;
 	const showPrivilegedAcceptReject = isPrivilegedMode;
@@ -269,8 +271,9 @@ const LeaveRequests = ({
 	
 	const showEditLeaveRequest = useCallback(
 		(rowData: any) =>
-			!isSelfMode || isEditableLeaveRequestStatus(leaveRequestRowStatus(rowData)),
-		[isSelfMode],
+			canEditPrivilegedLeave ||
+			(isSelfMode && isEditableLeaveRequestStatus(leaveRequestRowStatus(rowData))),
+		[canEditPrivilegedLeave, isSelfMode],
 	);
 
 	const columns = useMemo(() => {

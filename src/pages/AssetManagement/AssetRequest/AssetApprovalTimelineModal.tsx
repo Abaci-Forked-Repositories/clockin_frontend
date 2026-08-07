@@ -34,6 +34,7 @@ type AssetApprovalTimelineModalProps = {
 
 const STEP_ICON: Record<string, string> = {
 	APPROVED: 'CheckCircle',
+	COMPLETED: 'TaskAlt',
 	REJECTED: 'Cancel',
 	CANCELLED: 'Cancel',
 	PENDING: 'RadioButtonUnchecked',
