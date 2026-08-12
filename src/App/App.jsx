@@ -18,18 +18,21 @@ import { getOS } from "../helpers/helpers"
 import steps, { styles } from "../steps"
 import AsideRoutes from "../layout/Aside/AsideRoutes"
 import { ToastCloseButton } from "../components/bootstrap/Toasts"
-import { baseURL, getTenantRequestHeaders } from "../helpers/baseURL";
+import { baseURL, getTenantApiBaseURL } from "../helpers/baseURL";
 
 
 axios.interceptors.request.use((request) => {
   const token = Cookies.get("token");
-  request.baseURL = baseURL;
+  const tenant = Cookies.get("tenant");
+  request.baseURL = tenant ? getTenantApiBaseURL(tenant) : baseURL;
+  if (request.url && !/^https?:\/\//i.test(request.url) && request.url.startsWith("/")) {
+    request.url = request.url.replace(/^\/+/, "");
+  }
   //@ts-ignore
   request.headers = {
     "content-type": "application/json",
     accept: "application/json",
     Authorization: `Bearer ${token}`,
-    ...getTenantRequestHeaders(),
   };
   request.withCredentials = true;
   return request;

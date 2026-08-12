@@ -1,6 +1,8 @@
 export const ASSET_REQUEST_STATUS_LOOKUP: Record<string, string> = {
+	REQUESTED: 'Requested',
 	PENDING: 'Pending',
 	APPLIED: 'Applied',
+	BOOKED: 'Booked',
 	APPROVED: 'Approved',
 	PARTIAL: 'Partial',
 	COMPLETED: 'Completed',

@@ -3,6 +3,10 @@ import dayjs from 'dayjs';
 import { Calendar, dayjsLocalizer, Views } from 'react-big-calendar';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { statusColorLightBackground, WORKED_TIME_DISPLAY_LINE_RE } from '../../pages/Attendance/attendanceStatusUtils';
+import {
+	bookingPhaseCode,
+	bookingStatusColor,
+} from '../../pages/AssetManagement/AssetItem/assetBookingCalendarUtils';
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -77,7 +81,11 @@ const CustomCalendar = ({
 		const [primary, ...detailLines] = lines;
 
 		if (event?.resource?.kind === 'booking') {
-			const accent = String(event?.color || '#3174ad');
+			const accent = String(
+				event?.color ||
+					bookingStatusColor(bookingPhaseCode(event?.resource?.booking)) ||
+					'#64748b',
+			);
 			const rangeLabel =
 				event?.resource?.startDateKey !== event?.resource?.endDateKey
 					? `${event.resource.startDateKey} → ${event.resource.endDateKey}`

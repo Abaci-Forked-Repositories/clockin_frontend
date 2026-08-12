@@ -80,7 +80,7 @@ const setLogOut = () => {
           }
           return;
         }
-          const url = '/api/users/profile/';
+          const url = 'api/users/profile/';
           const response = await authAxios.get(url);
           const profileUser = response.data?.user ?? response.data;
           const resolvedUser =

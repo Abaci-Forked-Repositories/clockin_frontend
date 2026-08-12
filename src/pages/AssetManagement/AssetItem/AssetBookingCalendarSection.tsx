@@ -14,6 +14,10 @@ import { calendarEventStyleFromColor } from '../../Attendance/attendanceStatusUt
 import BookAssetBookingForm from '../BookAsset/BookAssetBookingForm';
 import AssetBookingDayModal from './AssetBookingDayModal';
 import {
+	BOOKING_STATUS_LEGEND,
+	bookingPhaseCode,
+	bookingPhaseLabel,
+	bookingStatusColor,
 	bookingsForDate,
 	buildBookingCalendarEvents,
 	countBookedDays,
@@ -58,6 +62,26 @@ const AssetBookingCalendarSection = ({
 	);
 
 	const bookedDayCount = useMemo(() => countBookedDays(events), [events]);
+
+	const statusLegend = useMemo(() => {
+		const byKey = new Map<string, { key: string; label: string; color: string }>();
+		for (const event of events) {
+			const booking = event?.resource?.booking;
+			if (!booking) continue;
+			const key = String(bookingPhaseCode(booking) || '')
+				.trim()
+				.toUpperCase()
+				.replace(/\s+/g, '_');
+			if (!key || byKey.has(key)) continue;
+			const fromStatic = BOOKING_STATUS_LEGEND.find((item) => item.key === key);
+			byKey.set(key, {
+				key,
+				label: fromStatic?.label || bookingPhaseLabel(booking),
+				color: fromStatic?.color || bookingStatusColor(key),
+			});
+		}
+		return Array.from(byKey.values());
+	}, [events]);
 
 	useEffect(() => {
 		if (assetId == null || assetId === '') {
@@ -163,6 +187,28 @@ const AssetBookingCalendarSection = ({
 											? `No bookings in ${selectedMonth.format('MMMM YYYY')}. Click a day for details.`
 											: 'Click a day to view booking details.'}
 								</div>
+								{statusLegend.length > 0 ? (
+									<div className='d-flex flex-wrap gap-2 mb-3'>
+										{statusLegend.map((item) => (
+											<span
+												key={item.key}
+												className='d-inline-flex align-items-center gap-2 small'
+												style={{ color: item.color }}>
+												<span
+													aria-hidden
+													style={{
+														width: 10,
+														height: 10,
+														borderRadius: 999,
+														backgroundColor: item.color,
+														display: 'inline-block',
+													}}
+												/>
+												{item.label}
+											</span>
+										))}
+									</div>
+								) : null}
 								<CustomCalendar
 									events={events}
 									date={selectedMonth.toDate()}
@@ -170,15 +216,22 @@ const AssetBookingCalendarSection = ({
 									className='schedule-calendar-grid--fit'
 									onNavigate={(date) => setSelectedMonth(dayjs(date))}
 									onDateClick={handleDateClick}
-									eventPropGetter={(event: any) => ({
-										className: 'rbc-event--booking-card',
-										style: {
-											...calendarEventStyleFromColor(
-												event?.color || '#3174ad',
-											),
-											borderLeft: `3px solid ${event?.color || '#3174ad'}`,
-										},
-									})}
+									eventPropGetter={(event: any) => {
+										const accent =
+											event?.color ||
+											bookingStatusColor(
+												bookingPhaseCode(event?.resource?.booking),
+											) ||
+											'#64748b';
+										return {
+											className: 'rbc-event--booking-card',
+											style: {
+												...calendarEventStyleFromColor(accent),
+												backgroundColor: 'transparent',
+												borderLeft: 'none',
+											},
+										};
+									}}
 								/>
 							</>
 						)}

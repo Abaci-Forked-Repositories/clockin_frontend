@@ -1,30 +1,9 @@
-import Cookies from 'js-cookie';
-
 const isDev = () => !import.meta.env.MODE || import.meta.env.MODE === 'development';
 
 const stripQuotes = (value) => value?.replace(/^['"]|['"]$/g, '').trim();
 
 export const getDevTenantOverride = () =>
 	isDev() ? stripQuotes(import.meta.env.VITE_DEV_TENANT) || '' : '';
-
-export const getCurrentTenantId = () => {
-	const devTenant = getDevTenantOverride();
-	if (devTenant) return devTenant;
-
-	const rootDomain = getRootDomain();
-	const { hostname } = window.location;
-	if (hostname !== rootDomain && hostname.endsWith(`.${rootDomain}`)) {
-		return hostname.replace(`.${rootDomain}`, '');
-	}
-
-	const cookieTenant = Cookies.get('tenant');
-	return cookieTenant ? String(cookieTenant).trim() : '';
-};
-
-export const getTenantRequestHeaders = () => {
-	const tenantId = getCurrentTenantId();
-	return tenantId ? { 'X-Tenant-ID': tenantId } : {};
-};
 
 export const getRootDomain = () => {
 	const fromEnv = stripQuotes(import.meta.env.VITE_API_ROOT_DOMAIN);
@@ -72,26 +51,42 @@ export const getSuperAdminBaseURL = () => {
 	return `${protocol}//${rootDomain}`;
 };
 
+/** Root host + `/clients/{tenant}` so APIs resolve as `/clients/{tenant}/api/...`. */
 export const getTenantApiBaseURL = (tenantSlug) => {
-	if (isDev() && getDevTenantOverride()) {
-		return getSuperAdminBaseURL();
+	const root = getSuperAdminBaseURL().replace(/\/$/, '');
+	const normalizedSlug = normalizeTenantSlug(tenantSlug);
+	if (!normalizedSlug) return root;
+	return `${root}/clients/${normalizedSlug}`;
+};
+
+/** Normalize API tenant values (string or object) to a slug. */
+export const normalizeTenantSlug = (tenant) => {
+	if (!tenant) return '';
+	if (typeof tenant === 'string') {
+		const normalized = tenant.trim();
+		return !normalized || normalized === '[object Object]' ? '' : normalized;
 	}
-
-	if (!tenantSlug) return getSuperAdminBaseURL();
-
-	const normalizedSlug = String(tenantSlug).trim();
-	if (!normalizedSlug) return getSuperAdminBaseURL();
-
-	const rootDomain = getRootDomain();
-	const protocol = window.location.protocol || 'http:';
-	const tenantHostname = `${normalizedSlug}.${rootDomain}`;
-
-	// Option A: frontend served on tenant subdomain — API shares the same origin
-	if (window.location.hostname === tenantHostname) {
-		return getOriginWithoutDevPort();
+	if (typeof tenant === 'object') {
+		return String(
+			tenant.schema_name ||
+				tenant.tenant_name ||
+				tenant.domain ||
+				tenant.name ||
+				tenant.slug ||
+				'',
+		).trim();
 	}
+	return String(tenant).trim();
+};
 
-	return `${protocol}//${tenantHostname}`;
+/** Prefix a relative API path with `clients/{tenant}/` when a tenant is known. */
+export const withClientTenantPrefix = (apiPath, tenantSlug) => {
+	const normalizedSlug = normalizeTenantSlug(tenantSlug);
+	const normalizedPath = String(apiPath || '').replace(/^\/+/, '');
+	if (!normalizedSlug || !normalizedPath) return normalizedPath;
+	if (normalizedPath.startsWith(`clients/${normalizedSlug}/`)) return normalizedPath;
+	if (normalizedPath.startsWith('clients/')) return normalizedPath;
+	return `clients/${normalizedSlug}/${normalizedPath}`;
 };
 
 const baseURLFunc = () => {

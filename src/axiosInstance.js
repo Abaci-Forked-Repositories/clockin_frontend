@@ -1,36 +1,23 @@
 import axios from 'axios';
-import { baseURL, getTenantApiBaseURL, getTenantRequestHeaders } from './helpers/baseURL';
+import {
+	baseURL,
+	getSuperAdminBaseURL,
+	getTenantApiBaseURL,
+	normalizeTenantSlug,
+} from './helpers/baseURL';
 import { AxiosTimeout } from './helpers/constants';
 import Cookies from 'js-cookie';
 
-const TENANT_HEADER_EXCLUDED_PATHS = ['/users/admin/login','/partners/login','/customers/registrations','/customers/clients','/customers/timezones','/customers/licenses/','/partners/','/signup-verify-email/','/customers/signup/'];
- 
-const shouldSkipTenantHeader = (config) => {
-    const requestUrl = `${config?.baseURL || ''}${config?.url || ''}`;
-    return TENANT_HEADER_EXCLUDED_PATHS.some((path) => requestUrl.includes(path));
-};
- 
-const attachTenantHeader = (instance) => {
-    instance.interceptors.request.use((config) => {
-        if (shouldSkipTenantHeader(config)) {
-            return config;
-        }
- 
-        Object.assign(config.headers, getTenantRequestHeaders());
-        return config;
-    });
-};
-
 export const publicAxios = axios.create({
 	baseURL,
-	timeout:AxiosTimeout,
+	timeout: AxiosTimeout,
 	headers: { 'content-type': 'application/json', accept: 'application/json' },
 	// withCredentials: true,
 });
 
 export const publicAxiosFileUpload = axios.create({
 	baseURL,
-	timeout:AxiosTimeout,
+	timeout: AxiosTimeout,
 	headers: {
 		'content-type': 'multipart/form-data',
 		accept: 'application/json',
@@ -40,18 +27,17 @@ export const publicAxiosFileUpload = axios.create({
 
 const authAxios = axios.create({
 	baseURL,
-	timeout:AxiosTimeout,
+	timeout: AxiosTimeout,
 	headers: {
 		'content-type': 'application/json',
-		 accept: 'application/json',
+		accept: 'application/json',
 	},
 	// withCredentials: true,
 });
 
-
 const authAxiosForCSV = axios.create({
 	baseURL,
-	timeout:AxiosTimeout,
+	timeout: AxiosTimeout,
 	responseType: 'blob',
 	// headers: {
 	// 	'content-type': 'application/json',
@@ -59,8 +45,6 @@ const authAxiosForCSV = axios.create({
 	// },
 	withCredentials: true,
 });
-
-
 
 const authAxiosFileUpload = axios.create({
 	baseURL,
@@ -71,41 +55,78 @@ const authAxiosFileUpload = axios.create({
 	withCredentials: true,
 });
 
-attachTenantHeader(publicAxios);
-attachTenantHeader(publicAxiosFileUpload);
-attachTenantHeader(authAxios);
-attachTenantHeader(authAxiosForCSV);
-attachTenantHeader(authAxiosFileUpload);
+/** Platform / public paths that must stay on the root host (no `/clients/{tenant}`). */
+const TENANT_PATH_EXCLUDED = [
+	'/users/validate-email',
+	'/users/admin/login',
+	'/users/partners/login',
+	'/customers/registrations',
+	'/customers/clients',
+	'/customers/timezones',
+	'/customers/licenses',
+	'/customers/signup',
+	'/signup-verify-email',
+	'/partners/',
+];
 
-const getTenantName = (tenantValue) => {
-	if (!tenantValue) return '';
-	if (typeof tenantValue === 'string') {
-		const normalizedTenant = tenantValue.trim();
-		if (!normalizedTenant || normalizedTenant === '[object Object]') return '';
-		return normalizedTenant;
-	}
-	if (typeof tenantValue === 'object') {
-		return (
-			tenantValue.schema_name ||
-			tenantValue.tenant_name ||
-			tenantValue.domain ||
-			tenantValue.name ||
-			tenantValue.slug ||
-			''
-		);
-	}
-	return '';
+const shouldSkipTenantClientPath = (url = '') => {
+	const normalized = String(url)
+		.toLowerCase()
+		.replace(/^https?:\/\/[^/]+/i, '');
+	return TENANT_PATH_EXCLUDED.some((path) => normalized.includes(path));
 };
 
+const resolveRequestTenant = (config) => {
+	const explicitTenant = config?.clientTenant;
+	return normalizeTenantSlug(explicitTenant) || normalizeTenantSlug(Cookies.get('tenant'));
+};
+
+/**
+ * Force every tenant request onto `{host}/clients/{tenant}/...`.
+ * Also strips a leading `/` on relative URLs so axios does not drop the `/clients/{tenant}` path.
+ * Prefer `config.clientTenant` (explicit) over the cookie so login never races the cookie write.
+ */
+const attachTenantClientPathInterceptor = (instance) => {
+	instance.interceptors.request.use((config) => {
+		const requestUrl = config.url || '';
+		const skipTenantPath = shouldSkipTenantClientPath(requestUrl);
+		const tenantName = resolveRequestTenant(config);
+
+		if (!/^https?:\/\//i.test(requestUrl) && requestUrl.startsWith('/')) {
+			config.url = requestUrl.replace(/^\/+/, '');
+		}
+
+		if (skipTenantPath || !tenantName) {
+			config.baseURL = getSuperAdminBaseURL().replace(/\/$/, '') || baseURL;
+			return config;
+		}
+
+		// Avoid `clients/{tenant}/clients/{tenant}/...` if caller already prefixed.
+		const relativeUrl = String(config.url || '');
+		if (
+			relativeUrl.startsWith(`clients/${tenantName}/`) ||
+			relativeUrl.startsWith('clients/')
+		) {
+			config.baseURL = getSuperAdminBaseURL().replace(/\/$/, '') || baseURL;
+			return config;
+		}
+
+		config.baseURL = getTenantApiBaseURL(tenantName);
+		return config;
+	});
+};
+
+[publicAxios, publicAxiosFileUpload, authAxios, authAxiosFileUpload, authAxiosForCSV].forEach(
+	attachTenantClientPathInterceptor,
+);
+
 const getTenantScopedBaseURL = (tenantValue) => {
-	const cookieTenant = Cookies.get('tenant');
-	const tenantName = getTenantName(tenantValue) || getTenantName(cookieTenant);
+	const tenantName =
+		normalizeTenantSlug(tenantValue) || normalizeTenantSlug(Cookies.get('tenant'));
 	return getTenantApiBaseURL(tenantName);
 };
 
 export const updateToken = (newToken, tenant) => {
-	// token = newToken;
-	// tenant = newTenant;
 	authAxios.defaults.headers.Authorization = `Bearer ${newToken}`;
 	authAxiosFileUpload.defaults.headers.Authorization = `Bearer ${newToken}`;
 	authAxiosForCSV.defaults.headers.Authorization = `Bearer ${newToken}`;
@@ -113,11 +134,10 @@ export const updateToken = (newToken, tenant) => {
 	authAxios.defaults.baseURL = tenantScopedBaseURL;
 	authAxiosFileUpload.defaults.baseURL = tenantScopedBaseURL;
 	authAxiosForCSV.defaults.baseURL = tenantScopedBaseURL;
-	
 };
 
 export const setInitialToken = () => {
-	const token=Cookies.get('token')
+	const token = Cookies.get('token');
 	const tenantScopedBaseURL = getTenantScopedBaseURL();
 	authAxios.defaults.headers.Authorization = `Bearer ${token}`;
 	authAxiosFileUpload.defaults.headers.Authorization = `Bearer ${token}`;
@@ -129,4 +149,4 @@ export const setInitialToken = () => {
 
 setInitialToken();
 
-export { authAxios, authAxiosFileUpload,authAxiosForCSV };
+export { authAxios, authAxiosFileUpload, authAxiosForCSV };

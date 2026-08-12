@@ -20,6 +20,8 @@ export type AssetBooking = {
 	end_datetime?: string;
 	booking_phase?: string;
 	booking_phase_display?: string;
+	status?: string;
+	status_display?: string;
 	description?: string;
 	actions?: AssetBookingActions;
 	is_requested_by_you?: boolean;
@@ -40,40 +42,53 @@ export type AssetBookingCalendarEvent = {
 	};
 };
 
+/** Distinct calendar accent colors by booking phase / request status. */
 const BOOKING_PHASE_COLORS: Record<string, string> = {
-	PENDING: '#f0ad4e',
-	APPLIED: '#f0ad4e',
-	UPCOMING: '#f0ad4e',
-	APPROVED: '#198754',
-	ACTIVE: '#198754',
-	IN_PROGRESS: '#198754',
-	ONGOING: '#198754',
-	PARTIAL: '#d97706',
-	COMPLETED: '#0d6efd',
-	PAST: '#6c757d',
-	REJECTED: '#dc3545',
-	CANCELLED: '#6c757d',
-	BOOKED: '#3174ad',
+	REQUESTED: '#d97706',
+	PENDING: '#d97706',
+	APPLIED: '#d97706',
+	UPCOMING: '#2563eb',
+	APPROVED: '#059669',
+	ACTIVE: '#059669',
+	IN_PROGRESS: '#059669',
+	ONGOING: '#059669',
+	PARTIAL: '#ea580c',
+	COMPLETED: '#7c3aed',
+	PAST: '#6b7280',
+	REJECTED: '#dc2626',
+	CANCELLED: '#9ca3af',
+	CANCELED: '#9ca3af',
+	BOOKED: '#0f766e',
 };
+
+const DEFAULT_BOOKING_COLOR = '#64748b';
 
 const formatPhaseLabel = (phase: string): string =>
 	phase
 		.replace(/_/g, ' ')
 		.trim()
+		.toLowerCase()
 		.replace(/\b\w/g, (char) => char.toUpperCase());
 
-export const bookingPhaseCode = (booking: AssetBooking): string =>
-	String(booking.booking_phase || '').trim();
+/** Prefer booking_phase; fall back to request status when phase is absent. */
+export const bookingPhaseCode = (booking: AssetBooking): string => {
+	const phase = String(booking.booking_phase || '').trim();
+	if (phase) return phase;
+	return String(booking.status || '').trim();
+};
 
 export const bookingPhaseLabel = (booking: AssetBooking): string => {
-	const display = String(booking.booking_phase_display || '').trim();
-	if (display) return display;
 	const phase = bookingPhaseCode(booking);
 	if (!phase) return '';
-	return (
-		ASSET_REQUEST_STATUS_LOOKUP[phase.toUpperCase()] ||
-		formatPhaseLabel(phase)
-	);
+	const key = phase.toUpperCase().replace(/\s+/g, '_');
+	const fromLookup = ASSET_REQUEST_STATUS_LOOKUP[key];
+	if (fromLookup) return fromLookup;
+
+	const display = String(
+		booking.booking_phase_display || booking.status_display || '',
+	).trim();
+	if (display) return formatPhaseLabel(display);
+	return formatPhaseLabel(phase);
 };
 
 export const CALENDAR_CELL_MAX_BOOKINGS = 3;
@@ -156,9 +171,15 @@ export const normalizeBooking = (
 			: '') || String(raw.email || '').trim() || undefined;
 
 	const bookingPhase = String(raw.booking_phase || '').trim();
+	const status = String(raw.status || '').trim();
 	const bookingPhaseDisplay =
 		String(raw.booking_phase_display || '').trim() ||
 		(bookingPhase ? formatPhaseLabel(bookingPhase) : '');
+	const statusDisplay =
+		String(raw.status_display || '').trim() ||
+		(status
+			? ASSET_REQUEST_STATUS_LOOKUP[status.toUpperCase()] || formatPhaseLabel(status)
+			: '');
 
 	const actionsRaw = raw.actions;
 	const actions: AssetBookingActions | undefined =
@@ -194,6 +215,8 @@ export const normalizeBooking = (
 		end_datetime: endDatetime,
 		booking_phase: bookingPhase || undefined,
 		booking_phase_display: bookingPhaseDisplay || undefined,
+		status: status || undefined,
+		status_display: statusDisplay || undefined,
 		description: String(raw.description || raw.remarks || '').trim() || undefined,
 		actions,
 		is_requested_by_you: Boolean(raw.is_requested_by_you),
@@ -206,7 +229,7 @@ export const bookingStatusColor = (phase?: string): string => {
 		.trim()
 		.toUpperCase()
 		.replace(/\s+/g, '_');
-	return BOOKING_PHASE_COLORS[key] || '#3174ad';
+	return BOOKING_PHASE_COLORS[key] || DEFAULT_BOOKING_COLOR;
 };
 
 export const summarizeBookingTitles = (
@@ -229,10 +252,16 @@ export const summarizeBookingTitles = (
 };
 
 export const BOOKING_STATUS_LEGEND: { key: string; label: string; color: string }[] = [
+	{ key: 'REQUESTED', label: 'Requested', color: BOOKING_PHASE_COLORS.REQUESTED },
+	{ key: 'PENDING', label: 'Pending', color: BOOKING_PHASE_COLORS.PENDING },
+	{ key: 'BOOKED', label: 'Booked', color: BOOKING_PHASE_COLORS.BOOKED },
 	{ key: 'UPCOMING', label: 'Upcoming', color: BOOKING_PHASE_COLORS.UPCOMING },
+	{ key: 'APPROVED', label: 'Approved', color: BOOKING_PHASE_COLORS.APPROVED },
 	{ key: 'ACTIVE', label: 'Active', color: BOOKING_PHASE_COLORS.ACTIVE },
+	{ key: 'PARTIAL', label: 'Partial', color: BOOKING_PHASE_COLORS.PARTIAL },
 	{ key: 'COMPLETED', label: 'Completed', color: BOOKING_PHASE_COLORS.COMPLETED },
 	{ key: 'PAST', label: 'Past', color: BOOKING_PHASE_COLORS.PAST },
+	{ key: 'REJECTED', label: 'Rejected', color: BOOKING_PHASE_COLORS.REJECTED },
 	{ key: 'CANCELLED', label: 'Cancelled', color: BOOKING_PHASE_COLORS.CANCELLED },
 ];
 
@@ -318,6 +347,8 @@ export const collectUniqueBookings = (
 			booking_phase: booking.booking_phase || existing.booking.booking_phase,
 			booking_phase_display:
 				booking.booking_phase_display || existing.booking.booking_phase_display,
+			status: booking.status || existing.booking.status,
+			status_display: booking.status_display || existing.booking.status_display,
 			actions: booking.actions || existing.booking.actions,
 			request_item_id: booking.request_item_id || existing.booking.request_item_id,
 			request_id: booking.request_id || existing.booking.request_id,
@@ -379,6 +410,8 @@ export const collectUniqueBookings = (
 			booking_phase: booking.booking_phase || existing.booking.booking_phase,
 			booking_phase_display:
 				booking.booking_phase_display || existing.booking.booking_phase_display,
+			status: booking.status || existing.booking.status,
+			status_display: booking.status_display || existing.booking.status_display,
 			actions: booking.actions || existing.booking.actions,
 			request_item_id: booking.request_item_id || existing.booking.request_item_id,
 			request_id: booking.request_id || existing.booking.request_id,

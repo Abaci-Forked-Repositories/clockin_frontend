@@ -57,6 +57,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
 	// Asset item statuses
 	available: { styleKey: 'Active', icon: 'CheckCircle', label: 'Available' },
 	assigned: { styleKey: 'Completed', icon: 'Person', label: 'Assigned' },
+	booked: { styleKey: 'Completed', icon: 'EventAvailable', label: 'Booked' },
 	returned: { styleKey: 'Scheduled', icon: 'AssignmentReturn', label: 'Returned' },
 	in_use: { styleKey: 'Scheduled', icon: 'Laptop', label: 'In Use' },
 	under_maintenance: { styleKey: 'Inactive', icon: 'Build', label: 'Under Maintenance' },
@@ -64,6 +65,10 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
 	lost: { styleKey: 'Cancelled', icon: 'SearchOff', label: 'Lost' },
 	disposed: { styleKey: 'Check', icon: 'DeleteForever', label: 'Disposed' },
 	completed: { styleKey: 'Completed', icon: 'TaskAlt', label: 'Completed' },
+	upcoming: { styleKey: 'Scheduled', icon: 'Event', label: 'Upcoming' },
+	past: { styleKey: 'Check', icon: 'History', label: 'Past' },
+	in_progress: { styleKey: 'Active', icon: 'Timelapse', label: 'In Progress' },
+	ongoing: { styleKey: 'Active', icon: 'Timelapse', label: 'Ongoing' },
 	yes: { styleKey: 'Active', icon: 'CheckCircle', label: 'Yes' },
 	no: { styleKey: 'Cancelled', icon: 'Cancel', label: 'No' },
 };

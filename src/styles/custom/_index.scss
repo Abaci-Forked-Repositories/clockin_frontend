@@ -1141,10 +1141,19 @@ overflow-x: hidden;
 
 	.rbc-event,
 	.rbc-event--shift-card,
+	.rbc-event--booking-card,
 	.rbc-shift-event-card {
 		border: none !important;
 		border-radius: 6px !important;
 		box-shadow: none !important;
+	}
+
+	// Booking chips carry their own status colors; clear RBC's default blue shell.
+	.rbc-event.rbc-event--booking-card {
+		background-color: transparent !important;
+		background: transparent !important;
+		padding: 0 !important;
+		color: inherit !important;
 	}
 
 	.rbc-event {
