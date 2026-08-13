@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import Chip from '@mui/material/Chip';
@@ -61,8 +61,8 @@ const AttendanceTableComponent = ({ tableRef, urlBackup, editModalToggle }: any)
 
 	const columns = useMemo(
 		() => [
-			{ title: 'Date', field: 'date', render: (rowData: any) => rowData?.date || '----' },
-			{ title: 'User', field: 'user__first_name', render: (rowData: any) => `${rowData?.user?.first_name} ${rowData?.user?.last_name}` || '----' },
+			{ title: 'Date', field: 'date', highlight: true, render: (rowData: any) => rowData?.date || '----' },
+			{ title: 'User', field: 'user__first_name', highlight: true, render: (rowData: any) => `${rowData?.user?.first_name} ${rowData?.user?.last_name}` || '----' },
 		
 			{
 				title: 'Clock In',
@@ -83,6 +83,7 @@ const AttendanceTableComponent = ({ tableRef, urlBackup, editModalToggle }: any)
 			{
 				title: 'Status',
 				field: 'status',
+				highlight: true,
 				render: (rowData: any) => {
 					const status = rowData?.status;
 					if (!status) return '----';
@@ -160,7 +161,7 @@ const AttendanceTableComponent = ({ tableRef, urlBackup, editModalToggle }: any)
 				context={timelineContext}
 			/>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
 					title=' '
 					columns={columns as any}

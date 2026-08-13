@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -25,7 +25,7 @@ const DoorsTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 
 	const columns = useMemo(
 		() => [
-			{ title: 'Name', field: 'name', render: (rowData: any) => rowData?.name || '----' },
+			{ title: 'Name', field: 'name', highlight: true, render: (rowData: any) => rowData?.name || '----' },
 			{
 				title: 'Entry Reader ID',
 				field: 'entry_reader_id',
@@ -57,6 +57,7 @@ const DoorsTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 			{
 				title: 'Status',
 				field: 'status',
+				highlight: true,
 				render: (rowData: any) =>
 					rowData?.status ? (
 						<StatusBadge status={rowData.status} />
@@ -89,7 +90,7 @@ const DoorsTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 	return (
 		<div className='material-table-wrapper'>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
 					title=' '
 					columns={columns as any}

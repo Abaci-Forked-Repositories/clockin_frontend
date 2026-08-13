@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
 import dayjs from 'dayjs';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import Chip from '@mui/material/Chip';
 import Tooltip from '@mui/material/Tooltip';
@@ -359,7 +359,7 @@ const SiteAttendanceSection = ({ siteId, site, siteName }: SiteAttendanceSection
 				<CardBody className='table-responsive pt-0'>
 					<div className='material-table-wrapper'>
 						<ThemeProvider theme={theme}>
-							<MaterialTable
+							<ResponsiveMaterialTable
 								key={`${siteId}-${statusFilter}`}
 								title=' '
 								columns={columns as any}

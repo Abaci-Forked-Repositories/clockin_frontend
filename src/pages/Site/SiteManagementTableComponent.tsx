@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -37,11 +37,13 @@ const SiteManagementTableComponent = (props) => {
 		{
 			title: 'Name',
 			field: 'name',
+			highlight: true,
 			render: (rowData) => (rowData?.name|| '----'),
 		},
 		{
 			title: 'Type',
 			field: 'type',
+			highlight: true,
 			render: (rowData) =>rowData?.type||'----',
 		},
 		{
@@ -99,7 +101,7 @@ const SiteManagementTableComponent = (props) => {
 	return (
 		 <div className='material-table-wrapper'>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					key={`${activeTab}-${tenant?.id || 'no-tenant'}-${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
 					title=' '
 					//@ts-ignore

@@ -10,6 +10,7 @@ import { authAxios } from '../../../../axiosInstance';
 import useToasterNotification from '../../../../hooks/useToasterNotification';
 import CustomerDetails from './CustomerDetails';
 import CustomerLicensesTable from './CustomerLicensesTable';
+import { allRoutesObject } from '../../../../routes/RoutesMenu';
 
 const CustomerDetailPage = () => {
 	const { id } = useParams();
@@ -50,7 +51,7 @@ const CustomerDetailPage = () => {
 		<PageWrapper title='Customer details'>
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton to={allRoutesObject.Customers.path} />
 					<SubheaderSeparator />
 					<CardTitle tag='div' className='h6'>
 						{String(customer?.name || 'Customer Details')}

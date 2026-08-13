@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { Form } from 'reactstrap';
 import { useForm } from 'react-hook-form';
@@ -11,7 +11,6 @@ import SaveButton from '../../components/CustomComponent/Buttons/SaveButton';
 import UserFields from '../../components/MasterComponents/Usermanagement/UserFields';
 import useToasterNotification from '../../hooks/useToasterNotification';
 import ImageCropper from '../../components/CustomComponent/ImageCropper';
-import AuthContext from '../../contexts/authContext';
 import CustomSpinner from '../../components/CustomSpinner/CustomSpinner';
 import { GenderOptions } from '../../helpers/constants';
 
@@ -121,6 +120,15 @@ const appendFormField = (formData, key, value) => {
 	}
 };
 
+/** Nullable FK fields must send `null` when cleared so the backend removes the link. */
+const appendNullableFormField = (formData, key, value) => {
+	if (value != null && value !== '') {
+		formData.append(key, String(value));
+	} else {
+		formData.append(key, 'null');
+	}
+};
+
 const buildAccountFormData = (data, image, initialScheduleIds = []) => {
 	const formData = new FormData();
 
@@ -141,8 +149,8 @@ const buildAccountFormData = (data, image, initialScheduleIds = []) => {
 	formData.append('is_hr', String(Boolean(data?.is_hr)));
 	appendFormField(formData, 'group', data?.group?.value);
 	appendFormField(formData, 'site', data?.site?.value);
-	appendFormField(formData, 'reporting_manager', data?.reporting_manager?.value);
-	appendFormField(formData, 'hr_manager', data?.hr_manager?.value);
+	appendNullableFormField(formData, 'reporting_manager', data?.reporting_manager?.value);
+	appendNullableFormField(formData, 'hr_manager', data?.hr_manager?.value);
 
 	const selectedScheduleId =
 		data?.schedule?.value != null && data?.schedule?.value !== ''
@@ -195,7 +203,6 @@ const EditUser = ({ isOpen, setIsOpen, tableRef, userId, title }) => {
 	const [hrManagerOptions, setHrManagerOptions] = useState([]);
 	const [scheduleOptions, setScheduleOptions] = useState([]);
 	const initialScheduleIdsRef = useRef([]);
-	const { userData } = useContext(AuthContext);
 
 	useEffect(() => {
 		if (!isOpen || userId == null || userId === '') return undefined;
@@ -203,9 +210,9 @@ const EditUser = ({ isOpen, setIsOpen, tableRef, userId, title }) => {
 		let cancelled = false;
 		setFormLoading(true);
 
-		const toOptions = (list, selfId) =>
+		const toOptions = (list, excludeUserId) =>
 			(Array.isArray(list) ? list : [])
-				.filter((item) => item?.id !== selfId)
+				.filter((item) => excludeUserId == null || item?.id !== excludeUserId)
 				.map((item) => ({
 					label:
 						item?.name ||
@@ -216,7 +223,6 @@ const EditUser = ({ isOpen, setIsOpen, tableRef, userId, title }) => {
 				}));
 
 		const run = async () => {
-			const selfId = userData?.id;
 			const accountsParams = { paginate: 'off' };
 			try {
 				const [groupsRes, sitesRes, schedulesRes, reportingRes, hrRes, userRes] =
@@ -258,8 +264,8 @@ const EditUser = ({ isOpen, setIsOpen, tableRef, userId, title }) => {
 					? reportingRes.data
 					: reportingRes?.data?.results || [];
 				const hrList = Array.isArray(hrRes?.data) ? hrRes.data : hrRes?.data?.results || [];
-				const reportingOpts = toOptions(reportingList, selfId);
-				const hrOpts = toOptions(hrList, selfId);
+				const reportingOpts = toOptions(reportingList, userId);
+				const hrOpts = toOptions(hrList, userId);
 
 				setGroupOptions(groupOpts);
 				setSiteOptions(siteOpts);
@@ -285,7 +291,7 @@ const EditUser = ({ isOpen, setIsOpen, tableRef, userId, title }) => {
 			cancelled = true;
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [isOpen, userId, userData?.id]);
+	}, [isOpen, userId]);
 
 	const onSubmit = (data) => {
 		setwaitingForAxios(true);

@@ -54,6 +54,17 @@ export const getHomePathForUser = (userData: UserDataInput): string => {
 	return '/';
 };
 
+/** Home path for the current Self / Admin toggle (Self cannot open `/`). */
+export const getEffectiveHomePathForUser = (
+	userData: UserDataInput,
+	mode: string,
+): string => {
+	if (isPlatformAdmin(userData)) return PLATFORM_ADMIN_HOME_PATH;
+	if (isPlatformPartner(userData)) return PLATFORM_PARTNER_HOME_PATH;
+	if (isSelfEquivalentMode(userData, mode)) return USER_HOME_PATH;
+	return getHomePathForUser(userData);
+};
+
 export const canUseRoleToggle = (userData: UserDataInput = null): boolean => {
 	const role = resolveTenantRouteRole(userData);
 	return role === 'Admin' || role === 'HR' || role === 'Manager';

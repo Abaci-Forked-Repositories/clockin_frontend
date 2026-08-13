@@ -132,13 +132,6 @@ const resolveMainDayStatus = (detail: any): string | undefined => {
 	return dayStatus != null && String(dayStatus).trim() !== '' ? String(dayStatus) : undefined;
 };
 
-const resolveAttendanceStatus = (detail: any): string | undefined => {
-	const att = detail?.attendance;
-	if (!att || typeof att !== 'object' || Array.isArray(att)) return undefined;
-	const attStatus = att.status;
-	return attStatus != null && String(attStatus).trim() !== '' ? String(attStatus) : undefined;
-};
-
 const formatShiftList = (raw: unknown): string => {
 	if (raw == null) return '';
 	if (typeof raw === 'string') return raw.trim();
@@ -451,27 +444,12 @@ const UserCalendarDetailModal = ({
 
 	const attendanceDeleted = isAttendanceDeleted(detail);
 	const mainDayStatus = resolveMainDayStatus(detail);
-	const attendanceDayStatus = resolveAttendanceStatus(detail);
 	const statusMeta = attendanceDeleted
 		? ATTENDANCE_REMOVED_META
 		: getStatusMeta(mainDayStatus);
-	const attendanceStatusMeta = attendanceDeleted ? null : getStatusMeta(attendanceDayStatus);
-	const isLate =
-		!attendanceDeleted &&
-		Boolean(
-			detail?.attendance &&
-				typeof detail.attendance === 'object' &&
-				!Array.isArray(detail.attendance) &&
-				detail.attendance.is_late,
-		);
 	const statusLabel = attendanceDeleted
 		? ATTENDANCE_REMOVED_META.label
 		: statusMeta?.label ?? '—';
-	const attendanceStatusLabel = attendanceStatusMeta?.label
-		? isLate
-			? `${attendanceStatusMeta.label} (Late)`
-			: attendanceStatusMeta.label
-		: null;
 	const scheduleShiftText = useMemo(() => {
 		const sched = detail?.schedule;
 		if (sched == null || typeof sched !== 'object' || Array.isArray(sched)) return '';
@@ -1012,7 +990,22 @@ const UserCalendarDetailModal = ({
 				<div className='w-100'>
 					<div className='px-4 pt-4 pb-1 pe-5'>
 						<ModalTitle id='user-calendar-day-modal'>
-							<div className='text-warning fw-semibold fs-5'>{dateLabel}</div>
+							<div className='d-flex align-items-center gap-2 flex-wrap'>
+								<div className='text-warning fw-semibold fs-5'>{dateLabel}</div>
+								{!loading ? (
+									<Chip
+										label={statusLabel || 'Not Available'}
+										sx={{
+											height: 34,
+											fontSize: '0.95rem',
+											fontWeight: 700,
+											bgcolor: `${statusMeta?.color ?? '#6c757d'}22`,
+											color: statusMeta?.color ?? '#495057',
+											'& .MuiChip-label': { px: 1.5 },
+										}}
+									/>
+								) : null}
+							</div>
 							<div className='text-muted small fw-normal mt-1'>{userDisplayName}</div>
 						</ModalTitle>
 					</div>
@@ -1045,19 +1038,7 @@ const UserCalendarDetailModal = ({
 								<div className='d-flex justify-content-between align-items-center px-3 py-2 mb-3 rounded-3 user-calendar-day-status-bar'>
 									<div className='w-100 d-flex align-items-center gap-2 justify-content-between'>
 										<div className='d-flex-col align-items-center gap-4 justify-content-between'>
-											<div className='d-flex align-items-center gap-2'>
-												<span className='text-muted small'>Status:</span>
-												<Chip
-													label={statusLabel || 'Not Available'}
-													size='small'
-													sx={{
-														fontWeight: 700,
-														bgcolor: `${statusMeta?.color ?? '#6c757d'}22`,
-														color: statusMeta?.color ?? '#495057',
-													}}
-												/>
-											</div>
-											<div className='fw-semibold mt-2'>
+											<div className='fw-semibold'>
 												{scheduleText || 'Schedule not found'}
 											</div>
 											{scheduleShiftText ? (
@@ -1203,20 +1184,6 @@ const UserCalendarDetailModal = ({
 													</Button>
 												)}
 											</div>
-											{attendanceStatusLabel ? (
-												<div className='d-flex align-items-center gap-2 mb-2'>
-													<span className='text-muted small'>Attendance:</span>
-													<Chip
-														label={attendanceStatusLabel}
-														size='small'
-														sx={{
-															fontWeight: 700,
-															bgcolor: `${attendanceStatusMeta?.color ?? '#6c757d'}22`,
-															color: attendanceStatusMeta?.color ?? '#495057',
-														}}
-													/>
-												</div>
-											) : null}
 											{leaveList.length ? (
 												<ul className='ps-3 mb-0 mt-2'>
 													{leaveList.map((lr: any) => (
@@ -1241,9 +1208,9 @@ const UserCalendarDetailModal = ({
 														</li>
 													))}
 												</ul>
-											) : !attendanceStatusLabel ? (
+											) : (
 												<div className='text-muted small'>No leave on this day</div>
-											) : null}
+											)}
 										</div>
 									</div>
 

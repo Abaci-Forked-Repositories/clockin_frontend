@@ -38,8 +38,10 @@
 	z-index: math.round($zindex-sticky - 1);
 	top: 0;
 	display: flex;
+	flex-wrap: nowrap;
 	min-height: map.get($subheader, height);
 	align-items: center;
+	gap: 0.5rem;
 	border-bottom: map.get($subheader, border-size) solid
 		var(--#{$prefix}subheader-border-bottom-color);
 	margin-top: map.get($content, padding-y) * -1;
@@ -78,13 +80,17 @@
 	@include child-space;
 
 	display: flex;
+	min-width: 0;
 	align-items: center;
 
-	@include media-breakpoint-down(sm) {
-		@include child-space-bottom;
-
-		flex-direction: column;
-		align-items: flex-start;
+	.card-title,
+	.h5,
+	.h4,
+	.h3 {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 }
 
@@ -92,6 +98,7 @@
 	@include child-space;
 
 	display: flex;
+	flex-shrink: 0;
 	align-items: center;
 }
 

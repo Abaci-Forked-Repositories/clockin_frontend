@@ -11,6 +11,21 @@ import {
 	type AssetRequestAction,
 } from './assetRequestUtils';
 
+const getActionConfirmText = (action: AssetRequestAction): string => {
+	switch (action) {
+		case 'approve':
+			return 'The request will be approved and the requester will be notified.';
+		case 'reject':
+			return 'The request will be rejected and the requester will be notified.';
+		case 'cancel':
+			return 'This will cancel the request. This action cannot be undone.';
+		case 'return':
+			return 'This will mark the asset as returned.';
+		default:
+			return 'Please confirm to continue.';
+	}
+};
+
 type AssetRequestActionButtonsProps = {
 	id: number | string;
 	itemId?: number | string | null;
@@ -45,7 +60,7 @@ const AssetRequestActionButtons: React.FC<AssetRequestActionButtonsProps> = ({
 		Swal.fire({
 			title: `${label} item?`,
 			icon: 'question',
-			text: 'This action cannot be undone.',
+			text: getActionConfirmText(action),
 			showCancelButton: true,
 			iconColor: buttonColor[4],
 			confirmButtonColor: buttonColor[colorIndex],

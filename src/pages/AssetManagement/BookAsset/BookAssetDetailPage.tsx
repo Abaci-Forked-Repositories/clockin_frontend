@@ -17,6 +17,7 @@ import AssetItemDetails from '../AssetItem/AssetItemDetails';
 import AssetBookingCalendarSection from '../AssetItem/AssetBookingCalendarSection';
 import { isAssetBookable } from '../AssetItem/assetBookingCalendarUtils';
 import AddAssetRequest from '../AssetRequest/AddAssetRequest';
+import { allRoutesObject } from '../../../routes/RoutesMenu';
 
 const BookAssetDetailPage = () => {
 	const { id } = useParams();
@@ -71,7 +72,7 @@ const BookAssetDetailPage = () => {
 			<PageWrapper title='Asset Inventory'>
 				<SubHeader>
 					<SubHeaderLeft>
-						<BackButton />
+						<BackButton to={allRoutesObject.BookAsset.path} />
 						<SubheaderSeparator />
 						<CardTitle tag='div' className='h6'>
 							{String(asset?.name || 'Asset Inventory')}

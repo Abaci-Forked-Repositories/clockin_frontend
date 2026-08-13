@@ -9,10 +9,12 @@ import Card, {
 import CustomSpinner from '../../../components/CustomSpinner/CustomSpinner';
 import CustomCalendar from '../../../components/CustomComponent/CustomCalendar';
 import { authAxios } from '../../../axiosInstance';
+import useDeviceScreen from '../../../hooks/useDeviceScreen';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import { calendarEventStyleFromColor } from '../../Attendance/attendanceStatusUtils';
 import BookAssetBookingForm from '../BookAsset/BookAssetBookingForm';
 import AssetBookingDayModal from './AssetBookingDayModal';
+import AssetBookingMobileDayView from './AssetBookingMobileDayView';
 import {
 	BOOKING_STATUS_LEGEND,
 	bookingPhaseCode,
@@ -38,7 +40,12 @@ const AssetBookingCalendarSection = ({
 	allowBooking = false,
 }: AssetBookingCalendarSectionProps) => {
 	const { showErrorNotification } = useToasterNotification();
+	const deviceScreen = useDeviceScreen();
+	const mobileBreakpoint = Number(import.meta.env.VITE_API_MOBILE_BREAKPOINT_SIZE);
+	const isMobile =
+		deviceScreen?.width != null && deviceScreen.width <= mobileBreakpoint;
 	const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
+	const [focusedDay, setFocusedDay] = useState<Dayjs>(dayjs());
 	const [loading, setLoading] = useState(false);
 	const [calendarData, setCalendarData] = useState<any>(null);
 	const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
@@ -62,6 +69,11 @@ const AssetBookingCalendarSection = ({
 	);
 
 	const bookedDayCount = useMemo(() => countBookedDays(events), [events]);
+
+	const mobileDayBookings = useMemo(
+		() => bookingsForDate(events, focusedDay.toDate()),
+		[events, focusedDay],
+	);
 
 	const statusLegend = useMemo(() => {
 		const byKey = new Map<string, { key: string; label: string; color: string }>();
@@ -124,6 +136,13 @@ const AssetBookingCalendarSection = ({
 		setModalOpen(true);
 	};
 
+	const handleFocusedDayChange = (day: Dayjs) => {
+		setFocusedDay(day);
+		if (!day.isSame(selectedMonth, 'month')) {
+			setSelectedMonth(day.startOf('month'));
+		}
+	};
+
 	const handleBook = (date: Date | null) => {
 		setSelectedDay(date);
 		setBookingFormOpen(true);
@@ -147,14 +166,16 @@ const AssetBookingCalendarSection = ({
 				<CardBody>
 					<div className='d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3'>
 						<div className='d-flex flex-column gap-2' style={{ maxWidth: 320 }}>
-							<input
-								type='month'
-								value={selectedMonth.format('YYYY-MM')}
-								onChange={(e) => {
-									if (e.target.value) setSelectedMonth(dayjs(e.target.value));
-								}}
-								className='form-control'
-							/>
+							{!isMobile ? (
+								<input
+									type='month'
+									value={selectedMonth.format('YYYY-MM')}
+									onChange={(e) => {
+										if (e.target.value) setSelectedMonth(dayjs(e.target.value));
+									}}
+									className='form-control'
+								/>
+							) : null}
 							{siteTimezoneLabel ? (
 								<div className='small text-muted'>
 									Site timezone:{' '}
@@ -178,6 +199,41 @@ const AssetBookingCalendarSection = ({
 							<div className='d-flex justify-content-center align-items-center py-5'>
 								<CustomSpinner />
 							</div>
+						) : isMobile ? (
+							<>
+								{statusLegend.length > 0 ? (
+									<div className='d-flex flex-wrap gap-2 mb-3'>
+										{statusLegend.map((item) => (
+											<span
+												key={item.key}
+												className='d-inline-flex align-items-center gap-2 small'
+												style={{ color: item.color }}>
+												<span
+													aria-hidden
+													style={{
+														width: 10,
+														height: 10,
+														borderRadius: 999,
+														backgroundColor: item.color,
+														display: 'inline-block',
+													}}
+												/>
+												{item.label}
+											</span>
+										))}
+									</div>
+								) : null}
+								<AssetBookingMobileDayView
+									focusedDay={focusedDay}
+									onFocusedDayChange={handleFocusedDayChange}
+									bookings={mobileDayBookings}
+									allowBooking={allowBooking}
+									onBook={(date) => handleBook(date)}
+									onActionSuccess={refreshCalendar}
+									siteTimezoneIana={siteTimezoneIana || undefined}
+									siteTimezoneLabel={siteTimezoneLabel || undefined}
+								/>
+							</>
 						) : (
 							<>
 								<div className='small text-muted mb-2'>

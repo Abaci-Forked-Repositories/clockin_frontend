@@ -1,5 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -42,6 +42,7 @@ const UserManagementTableComponent = (props) => {
 		{
 			title: 'Name',
 			field: 'first_name',
+			highlight: true,
 			render: (rowData) =>
 				`${rowData?.first_name || ''} ${rowData?.last_name || ''}`.trim()
 				|| rowData?.preferred_name
@@ -55,6 +56,7 @@ const UserManagementTableComponent = (props) => {
 		{
 			title: 'Current Status',
 			field: 'current_clockin_status',
+			highlight: true,
 			render: (rowData) =>
 				rowData?.current_clockin_status
 					? String(rowData.current_clockin_status).replace(/_/g, ' ')
@@ -63,6 +65,7 @@ const UserManagementTableComponent = (props) => {
 		{
 			title: 'Role',
 			field: 'tenant_role',
+			highlight: true,
 			sorting: false,
 			render: (rowData) => {
 				const role = resolveTenantRouteRole(rowData);
@@ -178,7 +181,7 @@ const UserManagementTableComponent = (props) => {
 	return (
 		 <div className='material-table-wrapper'>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					key={`${activeTab}-${tenant?.id || 'no-tenant'}-${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
 					title=' '
 					//@ts-ignore

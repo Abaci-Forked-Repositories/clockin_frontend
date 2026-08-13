@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import { Tooltip } from '@mui/material';
 import PropTypes from 'prop-types';
@@ -83,11 +83,13 @@ const WfhRequests = ({
 			{
 				title: 'Employee',
 				field: 'user__name',
+				highlight: true,
 				render: (rowData: any) => rowData?.user?.name || '----',
 			},
 			{
 				title: 'Start date',
 				field: 'start_date',
+				highlight: true,
 				render: (rowData: any) => rowData?.start_date || '----',
 			},
 			{
@@ -113,6 +115,7 @@ const WfhRequests = ({
 			{
 				title: 'Status',
 				field: 'status_code',
+				highlight: true,
 				lookup: WFH_REQUEST_STATUS_LOOKUP,
 				...(statusFilter ? { defaultFilter: [statusFilter] } : {}),
 				render: (rowData: any) => {
@@ -207,7 +210,7 @@ const WfhRequests = ({
 			<CardBody>
 				<div className='material-table-wrapper'>
 					<ThemeProvider theme={theme}>
-						<MaterialTable
+						<ResponsiveMaterialTable
 							key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}-${statusFilter ?? ''}`}
 							title=' '
 							columns={columns as any}

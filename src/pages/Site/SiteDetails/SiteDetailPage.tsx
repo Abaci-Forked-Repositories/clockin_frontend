@@ -9,6 +9,7 @@ import ScheduleDetailSkeleton from '../../../components/CustomComponent/Skeleton
 import { authAxios } from '../../../axiosInstance';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import SiteAttendanceSection from '../SiteDetails/SiteAttendanceSection';
+import { allRoutesObject } from '../../../routes/RoutesMenu';
 
 const SiteDetailPage = () => {
 	const { id } = useParams();
@@ -53,7 +54,7 @@ const SiteDetailPage = () => {
 		<PageWrapper title='Site details'>
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton to={allRoutesObject.site.path} />
 					<SubheaderSeparator />
 					<CardTitle tag='div' className='h6'>
 						Site Management

@@ -1,5 +1,6 @@
 import React, {  useState, MutableRefObject } from 'react';
-import MaterialTable, { Column } from '@material-table/core';
+import { Column } from '@material-table/core';
+import ResponsiveMaterialTable from '../../CustomComponent/Table/ResponsiveMaterialTable';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { ThemeProvider } from '@mui/material/styles';
 import { authAxios } from '../../../axiosInstance';
@@ -69,7 +70,7 @@ const EditLogTableComponent: React.FC<EditLogTableComponentProps> = ({
   return (
      <div className='material-table-wrapper'>
       <ThemeProvider theme={theme}>
-        <MaterialTable
+        <ResponsiveMaterialTable
           title=' '
           columns={staticColumns}
           tableRef={tableRef}

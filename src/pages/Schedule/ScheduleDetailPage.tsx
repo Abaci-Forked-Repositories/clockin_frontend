@@ -12,6 +12,7 @@ import ScheduleDetails from './ScheduleDetails';
 import ScheduleShiftsTimeline from './ScheduleShiftsTimeline';
 import ScheduleMonthlyCalendarSection from './ScheduleMonthlyCalendarSection';
 import DashboardDaySummary from '../Dashboard/DashboardDaySummary';
+import { allRoutesObject } from '../../routes/RoutesMenu';
 
 const ScheduleDetailPage = () => {
 	const { id } = useParams();
@@ -60,7 +61,7 @@ const ScheduleDetailPage = () => {
 		<PageWrapper title='Schedule details'>
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton to={allRoutesObject.Schedule.path} />
 					<SubheaderSeparator />
 					<CardTitle tag='div' className='h6'>
 						Schedule Management

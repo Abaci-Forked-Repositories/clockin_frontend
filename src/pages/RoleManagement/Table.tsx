@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -54,7 +54,7 @@ const RoleTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 	return (
 		<div className='material-table-wrapper'>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
 					title=' '
 					columns={columns as any}

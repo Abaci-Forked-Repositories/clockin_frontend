@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import { Tooltip } from '@mui/material';
 import PropTypes from 'prop-types';
@@ -209,11 +209,13 @@ const LeaveRequests = ({
 			{
 				title: 'Employee Name',
 				field: 'user__name',
+				highlight: true,
 				render: (rowData: any) => rowData?.user?.name || '----',
 			},
 			{
 				title: 'Leave Type',
 				field: leaveTypeFilter ? 'leave_type' : 'leave_type__name',
+				highlight: true,
 				...(leaveTypeFilter
 					? {
 							lookup: { [leaveTypeFilter.id]: leaveTypeFilter.name },
@@ -246,6 +248,7 @@ const LeaveRequests = ({
 			{
 				title: 'Status',
 				field: 'status',
+				highlight: true,
 				lookup: LEAVE_STATUS_LOOKUP,
 				...(statusFilter ? { defaultFilter: [statusFilter] } : {}),
 				render: (rowData: any) => {
@@ -401,7 +404,7 @@ const LeaveRequests = ({
 				<CardBody>
 					<div className='material-table-wrapper'>
 						<ThemeProvider theme={theme}>
-							<MaterialTable
+							<ResponsiveMaterialTable
 					key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}-${statusFilter ?? ''}-${leaveTypeFilter?.id ?? ''}-${dateFilter ?? ''}`}
 					title=' '
 					columns={columns as any}

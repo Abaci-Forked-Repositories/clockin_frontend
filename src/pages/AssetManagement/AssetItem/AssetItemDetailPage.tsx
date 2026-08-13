@@ -12,6 +12,7 @@ import AssetItemDetails from './AssetItemDetails';
 import AssetItemMovementsSection from './AssetItemMovementsSection';
 import AssetBookingCalendarSection from './AssetBookingCalendarSection';
 import { isAssetBookable } from './assetBookingCalendarUtils';
+import { allRoutesObject } from '../../../routes/RoutesMenu';
 
 const AssetItemDetailPage = () => {
 	const { id } = useParams();
@@ -52,7 +53,7 @@ const AssetItemDetailPage = () => {
 		<PageWrapper title='Asset details'>
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton to={allRoutesObject.Assets.path} />
 					<SubheaderSeparator />
 					<CardTitle tag='div' className='h6'>
 						{String(asset?.name || 'Asset Details')}

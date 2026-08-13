@@ -12,6 +12,7 @@ import GroupDetails from './GroupDetails';
 import GroupMembersSection from './GroupMembersSection';
 import GroupMonthlyCalendarSection from './GroupMonthlyCalendarSection';
 import Card, { CardBody, CardHeader, CardLabel, CardTitle as CardTitleH } from '../../components/bootstrap/Card';
+import { allRoutesObject } from '../../routes/RoutesMenu';
 
 const GroupDetailPage = () => {
 	const { id } = useParams();
@@ -50,7 +51,7 @@ const GroupDetailPage = () => {
 		<PageWrapper title='Group details'>
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton to={allRoutesObject.UserGroups.path} />
 					<SubheaderSeparator />
 					<CardTitle tag='div' className='h6'>
 						Monthly Group Schedule

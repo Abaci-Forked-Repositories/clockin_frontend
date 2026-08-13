@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import Card, { CardBody, CardHeader, CardLabel, CardTitle } from '../../../../components/bootstrap/Card';
@@ -94,7 +94,7 @@ const CustomerLicensesTable = ({ licenses = [] }: CustomerLicensesTableProps) =>
 			<CardBody className='table-responsive pt-0'>
 				<div className='material-table-wrapper'>
 					<ThemeProvider theme={theme}>
-						<MaterialTable
+						<ResponsiveMaterialTable
 							title=' '
 							columns={columns as any}
 							data={licenses}

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -40,18 +40,20 @@ const EventTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 
 	const columns = useMemo(
 		() => [
-			{ title: 'Date', field: 'timestamp', render: (rowData: any) => Moments(rowData?.timestamp, 'date') || '----' },
+			{ title: 'Date', field: 'timestamp', highlight: true, render: (rowData: any) => Moments(rowData?.timestamp, 'date') || '----' },
             { title: 'Time', field: 'timestamp', render: (rowData: any) => Moments(rowData?.timestamp, 'time') || '----' },
 		
 			{
 				title: 'User',
 				field: 'user',
+				highlight: true,
 				render: (rowData: any) => formatPersonName(rowData?.user),
 			},
 			
 			{
 				title: 'Event ',
 				field: 'event_type',
+				highlight: true,
 				render: (rowData: any) => rowData?.event_type || '----',
 			},
             {
@@ -90,7 +92,7 @@ const EventTableComponent = ({ tableRef, urlBackup, editModalToggle }: any) => {
 	return (
 		<div className='material-table-wrapper'>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}`}
 					title=' '
 					columns={columns as any}

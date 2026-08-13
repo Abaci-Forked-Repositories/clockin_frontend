@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../../components/CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import { Tooltip } from '@mui/material';
 import PropTypes from 'prop-types';
@@ -96,6 +96,7 @@ const AssetRequests = ({
 			{
 				title: 'Employee',
 				field: 'user__name',
+				highlight: true,
 				render: (rowData: any) => rowData?.user?.name || '----',
 			},
 			{
@@ -116,6 +117,7 @@ const AssetRequests = ({
 			{
 				title: 'Status',
 				field: 'status_code',
+				highlight: true,
 				lookup: ASSET_REQUEST_STATUS_LOOKUP,
 				...(statusFilter ? { defaultFilter: [statusFilter] } : {}),
 				render: (rowData: any) => {
@@ -231,7 +233,7 @@ const AssetRequests = ({
 				<CardBody>
 					<div className='material-table-wrapper'>
 						<ThemeProvider theme={theme}>
-							<MaterialTable
+							<ResponsiveMaterialTable
 								key={`${sortState.orderBy ?? 'no-order'}-${sortState.orderDirection}-${statusFilter ?? ''}`}
 								title=' '
 								columns={columns as any}

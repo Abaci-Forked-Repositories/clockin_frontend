@@ -14,9 +14,13 @@ import urlMaker from '../../helpers/UrlMaker';
 import ProfilePic from "../../assets/img/Profile.jpg"
 import AuthContext from '../../contexts/authContext';
 import BackButton from '../../components/CustomComponent/Buttons/BackButton';
+import { getEffectiveHomePathForUser } from '../../helpers/roleToggleUtils';
+import { useSelector } from 'react-redux';
 
 const Profile = () => {
 	const { userData } = useContext(AuthContext);
+	const accountToggle = useSelector((state: any) => state.authSlice?.account_toggle_button);
+	const mode = accountToggle === 'Self' ? 'Self' : 'Admin';
 	useTourStep(19);
 
 	function getAvatarSrc() {
@@ -35,7 +39,7 @@ const Profile = () => {
 		<PageWrapper >
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton preferHistory to={getEffectiveHomePathForUser(userData, mode)} />
 				</SubHeaderLeft>
 
 			</SubHeader>

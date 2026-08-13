@@ -11,6 +11,7 @@ import UserDetailSkeleton from '../../components/CustomComponent/Skeleton/UserDe
 import UserTodayInfoCard from '../../components/MasterComponents/Usermanagement/Details/UserTodayInfoCard';
 import UserGroupsCard from '../../components/MasterComponents/Usermanagement/Details/UserGroupsCard';
 import UserDocumentsSection from '../../components/MasterComponents/Usermanagement/Details/UserDocumentsSection';
+import { allRoutesObject } from '../../routes/RoutesMenu';
 
 const UserManagementPage = () => {
 	const { id } = useParams();
@@ -29,7 +30,7 @@ const UserManagementPage = () => {
 		<PageWrapper title='User Details'>
 			<SubHeader>
 				<SubHeaderLeft>
-					<BackButton />
+					<BackButton to={allRoutesObject.UserManagement.path} />
 					<SubheaderSeparator />
 					<CardTitle tag='div' className='h6'>
 						User Management

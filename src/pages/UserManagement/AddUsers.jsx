@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Form } from 'reactstrap';
 import { useForm } from 'react-hook-form';
@@ -11,7 +11,6 @@ import SaveButton from '../../components/CustomComponent/Buttons/SaveButton';
 import UserFields from '../../components/MasterComponents/Usermanagement/UserFields';
 import useToasterNotification from '../../hooks/useToasterNotification';
 import ImageCropper from '../../components/CustomComponent/ImageCropper';
-import AuthContext from '../../contexts/authContext';
 
 const AddUsers = ({ isOpen, setIsOpen, tableRef, title }) => {
 	const {
@@ -37,7 +36,6 @@ const AddUsers = ({ isOpen, setIsOpen, tableRef, title }) => {
 	const [reportingManagerOptions, setReportingManagerOptions] = useState([]);
 	const [hrManagerOptions, setHrManagerOptions] = useState([]);
 	const [scheduleOptions, setScheduleOptions] = useState([]);
-	const { userData } = useContext(AuthContext);
 
 	useEffect(() => {
 		if (isOpen) {
@@ -89,18 +87,15 @@ const AddUsers = ({ isOpen, setIsOpen, tableRef, title }) => {
 			.catch(() => setScheduleOptions([]));
 
 		const accountsParams = { paginate: 'off' };
-		const selfId = userData?.id;
 		const toOptions = (list) =>
-			(Array.isArray(list) ? list : [])
-				.filter((item) => item?.id !== selfId)
-				.map((item) => ({
-					label:
-						item?.name ||
-						`${item?.first_name || ''} ${item?.last_name || ''}`.trim() ||
-						item?.email ||
-						`User ${item?.id}`,
-					value: item?.id,
-				}));
+			(Array.isArray(list) ? list : []).map((item) => ({
+				label:
+					item?.name ||
+					`${item?.first_name || ''} ${item?.last_name || ''}`.trim() ||
+					item?.email ||
+					`User ${item?.id}`,
+				value: item?.id,
+			}));
 		Promise.all([
 			authAxios.get('api/hr/accounts/', {
 				params: { ...accountsParams, is_manager: true },
@@ -121,7 +116,7 @@ const AddUsers = ({ isOpen, setIsOpen, tableRef, title }) => {
 				setReportingManagerOptions([]);
 				setHrManagerOptions([]);
 			});
-	}, [isOpen, userData?.id]);
+	}, [isOpen]);
 
 	const appendFormField = (formData, key, value) => {
 		if (value != null && value !== '') {

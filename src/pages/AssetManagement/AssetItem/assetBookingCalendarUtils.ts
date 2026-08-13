@@ -232,15 +232,19 @@ export const bookingStatusColor = (phase?: string): string => {
 	return BOOKING_PHASE_COLORS[key] || DEFAULT_BOOKING_COLOR;
 };
 
+export const bookingCalendarDisplayName = (booking: AssetBooking): string =>
+	booking.is_requested_by_you ? 'You' : booking.user_name || 'Booking';
+
 export const summarizeBookingTitles = (
 	bookings: AssetBooking[],
 	maxShown = CALENDAR_CELL_MAX_BOOKINGS,
 ): string => {
 	if (!bookings.length) return '';
 	const lines = bookings.map((b) => {
-		const name = b.user_name || 'Booking';
+		const name = bookingCalendarDisplayName(b);
 		const phaseLabel = bookingPhaseLabel(b);
-		return phaseLabel ? `${name} · ${phaseLabel}` : name;
+		if (phaseLabel) return `${phaseLabel} · ${name}`;
+		return name;
 	});
 	const unique = Array.from(new Set(lines));
 	const shown = unique.slice(0, maxShown);

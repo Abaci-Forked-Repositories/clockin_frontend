@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from './Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { authAxios } from '../../axiosInstance';
@@ -44,7 +44,7 @@ const MaterialTableComponent: React.FC<MaterialTableComponentProps> = ({ tableRe
   return (
     <div className='material-table-wrapper'>
       <ThemeProvider theme={theme}>
-        <MaterialTable
+        <ResponsiveMaterialTable
           title=' '
           //@ts-ignore
           columns={tableColumns}

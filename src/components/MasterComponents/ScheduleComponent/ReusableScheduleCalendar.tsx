@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { authAxios } from '../../../axiosInstance';
+import useDeviceScreen from '../../../hooks/useDeviceScreen';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import {
 	ATTENDANCE_REMOVED_META,
@@ -16,6 +17,7 @@ import {
 import CustomSpinner from '../../CustomSpinner/CustomSpinner';
 import CustomCalendar from '../../CustomComponent/CustomCalendar';
 import ButtonFiltter from '../../CustomComponent/Filters/ButtonFiltter';
+import ScheduleMobileDayView from './ScheduleMobileDayView';
 
 const dayCodeByIndex: Record<number, string> = {
 	0: 'SUN',
@@ -53,7 +55,12 @@ const ReusableScheduleCalendar = ({
 	onDateClick,
 }: ReusableScheduleCalendarProps) => {
 	const calendarFilterOptions = ['All', 'Schedule', 'Status', 'Leave', 'OT'];
+	const deviceScreen = useDeviceScreen();
+	const mobileBreakpoint = Number(import.meta.env.VITE_API_MOBILE_BREAKPOINT_SIZE);
+	const isMobile =
+		deviceScreen?.width != null && deviceScreen.width <= mobileBreakpoint;
 	const [selectedMonth, setSelectedMonth] = useState<Dayjs>(dayjs());
+	const [focusedDay, setFocusedDay] = useState<Dayjs>(dayjs());
 	const [calendarRows, setCalendarRows] = useState<any[]>([]);
 	const [activeTab, setActiveTab] = useState('All');
 	const [loading, setLoading] = useState(false);
@@ -620,6 +627,24 @@ const ReusableScheduleCalendar = ({
 		[calendarRows, effectiveTab, monthBounds, calendarType],
 	);
 
+	const mobileDayEvents = useMemo(
+		() =>
+			calendarEvents.filter((event) =>
+				dayjs(event.start).isSame(focusedDay, 'day'),
+			),
+		[calendarEvents, focusedDay],
+	);
+
+	const handleFocusedDayChange = (day: Dayjs) => {
+		setFocusedDay(day);
+		if (!day.isSame(selectedMonth, 'month')) {
+			setSelectedMonth(day.startOf('month'));
+		}
+	};
+
+	const focusedDayParam = focusedDay.format('YYYY-MM-DD');
+	const mobileDetailLoading = detailLoadingDate === focusedDayParam;
+
 	useEffect(() => {
 		if (resolvedEntityId == null || resolvedEntityId === '') {
 			setCalendarRows([]);
@@ -677,16 +702,18 @@ const ReusableScheduleCalendar = ({
 		<div>
 			{showTopControls && (
 				<div className='d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3'>
-					<div style={{ maxWidth: '280px' }}>
-						<input
-							type='month'
-							value={selectedMonth.format('YYYY-MM')}
-							onChange={(e) => {
-								if (e.target.value) setSelectedMonth(dayjs(e.target.value));
-							}}
-							className='form-control'
-						/>
-					</div>
+					{!isMobile ? (
+						<div style={{ maxWidth: '280px' }}>
+							<input
+								type='month'
+								value={selectedMonth.format('YYYY-MM')}
+								onChange={(e) => {
+									if (e.target.value) setSelectedMonth(dayjs(e.target.value));
+								}}
+								className='form-control'
+							/>
+						</div>
+					) : null}
 					{showViewFilter && (
 						<div className='position-relative' style={{ minHeight: 42, minWidth: 280 }}>
 							<ButtonFiltter
@@ -710,6 +737,18 @@ const ReusableScheduleCalendar = ({
 							<CustomSpinner />
 						</div>
 					)
+				) : isMobile ? (
+					<ScheduleMobileDayView
+						focusedDay={focusedDay}
+						onFocusedDayChange={handleFocusedDayChange}
+						events={mobileDayEvents}
+						onViewDetails={
+							onDateClick
+								? () => handleDateClick(focusedDay.toDate())
+								: undefined
+						}
+						detailLoading={mobileDetailLoading}
+					/>
 				) : (
 					<CustomCalendar
 						events={calendarEvents}

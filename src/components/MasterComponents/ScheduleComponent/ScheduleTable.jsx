@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import MaterialTable from '@material-table/core';
+import ResponsiveMaterialTable from '../../CustomComponent/Table/ResponsiveMaterialTable';
 import { ThemeProvider } from '@mui/material/styles';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import useTablestyle from '../../../hooks/useTablestyles';
@@ -35,7 +35,7 @@ const ScheduleTable = ({ tableRef, editHandler }) => {
 	return (
 		<div className='material-table-wrapper'>
 			<ThemeProvider theme={theme}>
-				<MaterialTable
+				<ResponsiveMaterialTable
 					title='Dummy Schedule Table'
 					columns={columns}
 					tableRef={tableRef}
