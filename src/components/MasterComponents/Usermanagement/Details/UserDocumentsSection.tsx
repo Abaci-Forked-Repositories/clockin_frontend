@@ -293,7 +293,7 @@ const UserDocumentsSection = ({ userId, fillHeight = false }: Props) => {
 	if (!userId) return null;
 
 	return (
-		<div className={classNames('w-100', fillHeight && 'h-100 d-flex')}>
+		<div className={classNames('user-documents-card w-100', fillHeight && 'h-100 d-flex')}>
 			<Card
 				className={classNames('d-flex flex-column overflow-hidden w-100', fillHeight && 'h-100')}
 				style={
@@ -301,9 +301,9 @@ const UserDocumentsSection = ({ userId, fillHeight = false }: Props) => {
 						? undefined
 						: { height: DOCUMENTS_CARD_HEIGHT_PX, maxHeight: DOCUMENTS_CARD_HEIGHT_PX }
 				}>
-				<CardHeader className='flex-shrink-0'>
+				<CardHeader className='flex-shrink-0 user-documents-card__header'>
 					<CardLabel icon='Description' iconColor='warning'>
-						<CardTitle tag='div' className='h5 text-warning'>
+						<CardTitle tag='div' className='h5 text-warning mb-0'>
 							Documents
 						</CardTitle>
 					</CardLabel>

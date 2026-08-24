@@ -240,10 +240,20 @@ const StatCard = ({ label, value, tone, icon, to }: StatCardProps) => {
 	);
 };
 
-const DashboardLeaveRequestsSummary = () => {
+type DashboardLeaveRequestsSummaryProps = {
+	hideLoader?: boolean;
+	onLoadComplete?: () => void;
+};
+
+const DashboardLeaveRequestsSummary = ({
+	hideLoader = false,
+	onLoadComplete,
+}: DashboardLeaveRequestsSummaryProps) => {
 	const { showErrorNotification } = useToasterNotification();
 	const showErrorRef = useRef(showErrorNotification);
 	showErrorRef.current = showErrorNotification;
+	const onLoadCompleteRef = useRef(onLoadComplete);
+	onLoadCompleteRef.current = onLoadComplete;
 
 	const [summary, setSummary] = useState<LeaveRequestsSummary | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -263,7 +273,10 @@ const DashboardLeaveRequestsSummary = () => {
 				}
 			})
 			.finally(() => {
-				setLoading(false);
+				if (!cancelled) {
+					setLoading(false);
+					onLoadCompleteRef.current?.();
+				}
 			});
 		return () => {
 			cancelled = true;
@@ -276,10 +289,11 @@ const DashboardLeaveRequestsSummary = () => {
 	}, [fetchSummary]);
 
 	if (loading && !summary) {
+		if (hideLoader) return null;
 		return (
 			<div className='hr-dashboard mt-4'>
 				<div className='d-flex justify-content-center py-4'>
-					<AbaciLoader />
+					<AbaciLoader inline />
 				</div>
 			</div>
 		);

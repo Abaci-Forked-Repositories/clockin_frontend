@@ -195,13 +195,9 @@ const AssetBookingCalendarSection = ({
 						) : null}
 					</div>
 					<div className='position-relative schedule-calendar schedule-calendar--fit'>
-						{loading ? (
-							<div className='d-flex justify-content-center align-items-center py-5'>
-								<CustomSpinner />
-							</div>
-						) : isMobile ? (
+						{isMobile ? (
 							<>
-								{statusLegend.length > 0 ? (
+								{!loading && statusLegend.length > 0 ? (
 									<div className='d-flex flex-wrap gap-2 mb-3'>
 										{statusLegend.map((item) => (
 											<span
@@ -226,7 +222,8 @@ const AssetBookingCalendarSection = ({
 								<AssetBookingMobileDayView
 									focusedDay={focusedDay}
 									onFocusedDayChange={handleFocusedDayChange}
-									bookings={mobileDayBookings}
+									bookings={loading ? [] : mobileDayBookings}
+									loading={loading}
 									allowBooking={allowBooking}
 									onBook={(date) => handleBook(date)}
 									onActionSuccess={refreshCalendar}
@@ -234,6 +231,10 @@ const AssetBookingCalendarSection = ({
 									siteTimezoneLabel={siteTimezoneLabel || undefined}
 								/>
 							</>
+						) : loading ? (
+							<div className='d-flex justify-content-center align-items-center py-5'>
+								<CustomSpinner />
+							</div>
 						) : (
 							<>
 								<div className='small text-muted mb-2'>

@@ -95,7 +95,19 @@ const MobileTableCards: React.FC<MobileTableCardsProps> = ({
 	const [rows, setRows] = useState<any[]>([]);
 	const [totalCount, setTotalCount] = useState(0);
 	const [loading, setLoading] = useState(false);
+	const materialFilters = useMemo(
+		() => buildMaterialFilters(visibleColumns, selectedFilters),
+		[visibleColumns, selectedFilters],
+	);
 	const requestIdRef = useRef(0);
+	const dataRef = useRef(data);
+	const selectedFiltersRef = useRef(selectedFilters);
+	const visibleColumnsRef = useRef(visibleColumns);
+	const materialFiltersRef = useRef(materialFilters);
+	dataRef.current = data;
+	selectedFiltersRef.current = selectedFilters;
+	visibleColumnsRef.current = visibleColumns;
+	materialFiltersRef.current = materialFilters;
 	const isRemote = typeof data === 'function';
 
 	useEffect(() => {
@@ -119,22 +131,22 @@ const MobileTableCards: React.FC<MobileTableCardsProps> = ({
 		setPage(0);
 	}, [debouncedSearch, selectedFilters, pageSize]);
 
-	const materialFilters = useMemo(
-		() => buildMaterialFilters(visibleColumns, selectedFilters),
-		[visibleColumns, selectedFilters],
-	);
-
 	const loadData = useCallback(async () => {
 		const requestId = requestIdRef.current + 1;
 		requestIdRef.current = requestId;
+		const currentData = dataRef.current;
+		const currentFilters = selectedFiltersRef.current;
+		const currentColumns = visibleColumnsRef.current;
+		const currentMaterialFilters = materialFiltersRef.current;
+		const remote = typeof currentData === 'function';
 
-		if (!isRemote) {
-			const source = Array.isArray(data) ? data : [];
+		if (!remote) {
+			const source = Array.isArray(currentData) ? currentData : [];
 			const searchTerm = debouncedSearch.toLowerCase();
 			const filtered = source.filter((row) => {
-				if (!matchesSelectedFilters(row, selectedFilters, visibleColumns)) return false;
+				if (!matchesSelectedFilters(row, currentFilters, currentColumns)) return false;
 				if (!searchTerm) return true;
-				return visibleColumns.some((column) => {
+				return currentColumns.some((column) => {
 					const rendered = column.render ? column.render(row) : undefined;
 					const fieldValue = column.field ? (row as any)?.[column.field] : undefined;
 					return `${toSearchText(rendered)} ${toSearchText(fieldValue)}`
@@ -152,11 +164,13 @@ const MobileTableCards: React.FC<MobileTableCardsProps> = ({
 		setLoading(true);
 		setRows([]);
 		try {
-			const result = await (data as (query: MobileTableQuery) => Promise<MobileTableQueryResult>)({
+			const result = await (
+				currentData as (query: MobileTableQuery) => Promise<MobileTableQueryResult>
+			)({
 				page,
 				pageSize,
 				search: debouncedSearch,
-				filters: materialFilters,
+				filters: currentMaterialFilters,
 				orderBy: null,
 				orderDirection: 'asc',
 			});
@@ -170,20 +184,11 @@ const MobileTableCards: React.FC<MobileTableCardsProps> = ({
 		} finally {
 			if (requestId === requestIdRef.current) setLoading(false);
 		}
-	}, [
-		data,
-		debouncedSearch,
-		isRemote,
-		materialFilters,
-		page,
-		pageSize,
-		selectedFilters,
-		visibleColumns,
-	]);
+	}, [debouncedSearch, page, pageSize]);
 
 	useEffect(() => {
 		loadData();
-	}, [loadData]);
+	}, [loadData, selectedFilters, isRemote]);
 
 	useEffect(() => {
 		if (!tableRef) return undefined;

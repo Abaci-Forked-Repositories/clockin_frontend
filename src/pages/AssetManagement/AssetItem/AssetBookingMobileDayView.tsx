@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
 import Button from '../../../components/bootstrap/Button';
 import Icon from '../../../components/icon/Icon';
+import MobileCalendarSkeleton from '../../../components/CustomComponent/Skeleton/MobileCalendarSkeleton';
 import AssetBookingDayDetails from './AssetBookingDayDetails';
 import type { AssetBooking } from './assetBookingCalendarUtils';
 
@@ -14,6 +15,7 @@ type AssetBookingMobileDayViewProps = {
 	onActionSuccess?: () => void;
 	siteTimezoneIana?: string;
 	siteTimezoneLabel?: string;
+	loading?: boolean;
 };
 
 const openNativePicker = (input: HTMLInputElement | null) => {
@@ -38,6 +40,7 @@ const AssetBookingMobileDayView = ({
 	onActionSuccess,
 	siteTimezoneIana,
 	siteTimezoneLabel,
+	loading = false,
 }: AssetBookingMobileDayViewProps) => {
 	const monthInputRef = useRef<HTMLInputElement>(null);
 	const dateInputRef = useRef<HTMLInputElement>(null);
@@ -143,20 +146,28 @@ const AssetBookingMobileDayView = ({
 							aria-hidden
 						/>
 						<div className='asset-booking-mobile-nav__day-content'>
-							<AssetBookingDayDetails
-								bookings={bookings}
-								allowBooking={allowBooking}
-								onActionSuccess={onActionSuccess}
-								siteTimezoneIana={siteTimezoneIana}
-								siteTimezoneLabel={siteTimezoneLabel}
-								emptyMinHeight={160}
-							/>
+							{loading ? (
+								<MobileCalendarSkeleton contentOnly variant='booking' cardCount={2} />
+							) : (
+								<AssetBookingDayDetails
+									bookings={bookings}
+									allowBooking={allowBooking}
+									onActionSuccess={onActionSuccess}
+									siteTimezoneIana={siteTimezoneIana}
+									siteTimezoneLabel={siteTimezoneLabel}
+									emptyMinHeight={160}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
 
 				<div className='asset-booking-mobile-nav__meta'>
-					{bookings.length > 0 ? (
+					{loading ? (
+						<span className='asset-booking-mobile-nav__chip mobile-calendar-skeleton__chip-slot'>
+							<span className='mobile-calendar-skeleton__chip-fill mobile-calendar-skeleton__shimmer' />
+						</span>
+					) : bookings.length > 0 ? (
 						<span className='asset-booking-mobile-nav__chip asset-booking-mobile-nav__chip--booked'>
 							<Icon icon='EventAvailable' className='me-1' />
 							{bookings.length} booking{bookings.length === 1 ? '' : 's'}

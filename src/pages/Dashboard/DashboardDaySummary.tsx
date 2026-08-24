@@ -127,6 +127,8 @@ export type DashboardDaySummary = {
 type Props = {
 	/** When set, fetches `/api/hr/dashboard/day-summary/?schedule={id}` and shows group/shift breakdown. */
 	scheduleId?: string;
+	hideLoader?: boolean;
+	onLoadComplete?: () => void;
 };
 
 const countValue = (counts: StatusCounts | undefined, key: keyof StatusCounts) => {
@@ -399,10 +401,12 @@ const ScheduleDashboardCard = ({
 	);
 };
 
-const DashboardDaySummary = ({ scheduleId }: Props) => {
+const DashboardDaySummary = ({ scheduleId, hideLoader = false, onLoadComplete }: Props) => {
 	const { showErrorNotification } = useToasterNotification();
 	const showErrorRef = useRef(showErrorNotification);
 	showErrorRef.current = showErrorNotification;
+	const onLoadCompleteRef = useRef(onLoadComplete);
+	onLoadCompleteRef.current = onLoadComplete;
 
 	const [summary, setSummary] = useState<DashboardDaySummary | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -432,7 +436,10 @@ const DashboardDaySummary = ({ scheduleId }: Props) => {
 				}
 			})
 			.finally(() => {
-				setLoading(false);
+				if (!cancelled) {
+					setLoading(false);
+					onLoadCompleteRef.current?.();
+				}
 			});
 		return () => {
 			cancelled = true;
@@ -451,9 +458,10 @@ const DashboardDaySummary = ({ scheduleId }: Props) => {
 		pagesNotInSideBar.GroupTemplateDetail.path.replace(':id', encodeURIComponent(String(id)));
 
 	if (loading && !summary) {
+		if (hideLoader) return null;
 		return (
 			<div className='d-flex justify-content-center py-5'>
-				<AbaciLoader />
+				<AbaciLoader inline />
 			</div>
 		);
 	}

@@ -10,6 +10,7 @@ const CheckboxWithLabel = ({
 	labelFirst = false,
 	layout = 'inline',
 	className,
+	size = 'md',
 }: any) => {
 	const switchNode = (
 		<Controller
@@ -23,6 +24,7 @@ const CheckboxWithLabel = ({
 					id={name}
 					checked={Boolean(field.value)}
 					onChange={field.onChange}
+					size={size}
 				/>
 			)}
 		/>

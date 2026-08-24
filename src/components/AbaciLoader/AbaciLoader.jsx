@@ -1,10 +1,15 @@
 import React from 'react'
 import './AbaciLoader.css';
 
-const AbaciLoader = () => {
+/**
+ * @param {{ inline?: boolean }} props
+ * inline: keep the loader in normal document flow (for cards/sections).
+ * Default is a fixed viewport-centered overlay (route/page fallbacks).
+ */
+const AbaciLoader = ({ inline = false } = {}) => {
   return (
-    <div>
-      <div className="box">
+    <div className={inline ? 'abaci-loader abaci-loader--inline' : 'abaci-loader'}>
+      <div className={inline ? 'box box--inline' : 'box'}>
   <div className="bead-container">
     <div className="rod" >
       <div className="bead" style={{backgroundColor:'#AD2175'}} />

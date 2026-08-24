@@ -269,7 +269,7 @@ const LeaveRequestsTodaySummary = ({
 				</CardHeader>
 				<CardBody>
 					<div className='d-flex justify-content-center py-3'>
-						<AbaciLoader />
+						<AbaciLoader inline />
 					</div>
 				</CardBody>
 			</Card>

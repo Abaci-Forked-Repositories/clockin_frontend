@@ -47,11 +47,14 @@ const UserGroupsCard = ({ userId, fillHeight = false }: Props) => {
 
 	return (
 		<Card
-			className={classNames('w-100', fillHeight && 'h-100 d-flex flex-column')}
+			className={classNames(
+				'user-groups-card w-100',
+				fillHeight && 'h-100 d-flex flex-column',
+			)}
 			stretch={fillHeight}>
-			<CardHeader>
+			<CardHeader className='user-groups-card__header'>
 				<CardLabel icon='Groups' iconColor='warning'>
-					<CardTitle tag='div' className='h5 text-warning'>
+					<CardTitle tag='div' className='h5 text-warning mb-0'>
 						Groups
 					</CardTitle>
 				</CardLabel>
@@ -62,17 +65,17 @@ const UserGroupsCard = ({ userId, fillHeight = false }: Props) => {
 						<CustomSpinner />
 					</div>
 				) : groups.length > 0 ? (
-					<ul className='mb-0 ps-3 fw-semibold'>
+					<ul className='user-groups-card__list mb-0'>
 						{groups.map((group) => {
 							const addedBy = addedByName(group);
 							const addedOn = group.added_on
 								? dayjs(group.added_on).format('MMM D, YYYY')
 								: '';
 							return (
-								<li key={group.id ?? group.name} className='mb-2'>
-									<div>{group.name || '—'}</div>
+								<li key={group.id ?? group.name} className='user-groups-card__item'>
+									<div className='user-groups-card__item-name'>{group.name || '—'}</div>
 									{addedBy || addedOn ? (
-										<div className='text-muted small fw-normal'>
+										<div className='user-groups-card__item-meta'>
 											{[addedBy && `Added by ${addedBy}`, addedOn && `on ${addedOn}`]
 												.filter(Boolean)
 												.join(' ')}

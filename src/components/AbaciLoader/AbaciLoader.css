@@ -1,3 +1,12 @@
+.abaci-loader--inline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 5.5rem;
+  padding: 0.5rem 0;
+}
+
 .box {
   position: fixed;
   width: 230px;
@@ -10,6 +19,15 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+}
+
+.box--inline {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: 180px;
+  height: 64px;
 }
 
 /* .column {

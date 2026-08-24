@@ -7,39 +7,20 @@ import ScheduleAssignedGroupsSection from './ScheduleAssignedGroupsSection';
 const DetailRow = ({
 	label,
 	value,
-	fullWidth,
-	valueIcon,
+	span,
 }: {
 	label: string;
 	value?: React.ReactNode;
-	fullWidth?: boolean;
-	/** Icon shown beside the value (e.g. schedule name). */
-	valueIcon?: string;
+	span?: 2;
 }) => {
 	const hasValue = value != null && value !== '';
-	const display = hasValue ? value : '—';
-
 	return (
-		<div className={fullWidth ? 'col-12' : 'col-md-6 col-12'}>
-			<div
-				className='text-muted small text-uppercase fw-semibold'
-				style={{ fontSize: '0.8rem', letterSpacing: '0.02em' }}>
-				{label}
-			</div>
-			<div className='fs-6 fw-semibold mt-1 d-flex align-items-center gap-2'>
-				{valueIcon && hasValue && (
-					<span
-						className='d-inline-flex align-items-center justify-content-center rounded-2 flex-shrink-0'
-						style={{
-							width: '2rem',
-							height: '2rem',
-							backgroundColor: 'rgba(var(--bs-warning-rgb), 0.12)',
-						}}>
-						<Icon icon={valueIcon} size='lg' color='warning' />
-					</span>
-				)}
-				<span>{display}</span>
-			</div>
+		<div
+			className={`schedule-detail-card__field${
+				span === 2 ? ' schedule-detail-card__field--span-2' : ''
+			}`}>
+			<div className='schedule-detail-card__label'>{label}</div>
+			<div className='schedule-detail-card__value'>{hasValue ? value : '—'}</div>
 		</div>
 	);
 };
@@ -72,7 +53,7 @@ const dayMeta: Record<string, { label: string; bg: string; color: string }> = {
 const renderApplicableDays = (days: any) => {
 	if (!Array.isArray(days) || days.length === 0) return undefined;
 	return (
-		<div className='d-flex flex-wrap gap-2'>
+		<div className='schedule-detail-card__days'>
 			{days.map((rawDay: any) => {
 				const key = String(rawDay || '').toUpperCase();
 				const meta = dayMeta[key] || {
@@ -83,14 +64,8 @@ const renderApplicableDays = (days: any) => {
 				return (
 					<span
 						key={key}
-						className='fw-semibold d-inline-flex align-items-center justify-content-center rounded-circle'
-						style={{
-							backgroundColor: meta.bg,
-							color: meta.color,
-							fontSize: '0.8rem',
-							width: '2.8rem',
-							height: '2.8rem',
-						}}>
+						className='schedule-detail-card__day'
+						style={{ backgroundColor: meta.bg, color: meta.color }}>
 						{meta.label}
 					</span>
 				);
@@ -110,31 +85,45 @@ const ScheduleDetails = ({ schedule, scheduleId, onGroupsChanged }: ScheduleDeta
 		return null;
 	}
 
+	const dateRange =
+		schedule?.start_date || schedule?.end_date
+			? `${schedule?.start_date || '—'} → ${schedule?.end_date || '—'}`
+			: '';
+
 	return (
 		<div className='row g-4 align-items-stretch'>
 			<div className='col-lg-7'>
-				<Card className='h-100'>
-					<CardHeader>
+				<Card className='h-100 schedule-detail-card'>
+					<CardHeader className='schedule-detail-card__header'>
 						<CardLabel icon='Schedule' iconColor='warning'>
 							<CardTitle tag='div' className='h5 text-warning mb-0'>
 								Schedule details
 							</CardTitle>
 						</CardLabel>
 					</CardHeader>
-					<CardBody className='pt-0'>
-						<div className='row g-4'>
-							<DetailRow
-								label='Schedule name'
-								value={schedule?.name}
-								valueIcon='Title'
-								fullWidth
-							/>
-							<DetailRow label='Shift(s)' value={formatShifts(schedule)} />
+					<CardBody className='schedule-detail-card__body pt-0'>
+						<div className='schedule-detail-card__hero'>
+							<span className='schedule-detail-card__hero-icon' aria-hidden>
+								<Icon icon='Schedule' size='lg' color='warning' />
+							</span>
+							<div className='schedule-detail-card__hero-text'>
+								<div className='schedule-detail-card__name'>
+									{schedule?.name || '—'}
+								</div>
+								{dateRange ? (
+									<div className='schedule-detail-card__subtitle'>{dateRange}</div>
+								) : null}
+							</div>
+						</div>
+
+						<div className='schedule-detail-card__fields'>
+							<DetailRow label='Shift(s)' value={formatShifts(schedule)} span={2} />
 							<DetailRow label='Start date' value={schedule?.start_date} />
 							<DetailRow label='End date' value={schedule?.end_date} />
 							<DetailRow
 								label='Applicable days'
 								value={renderApplicableDays(schedule?.applicable_days)}
+								span={2}
 							/>
 							<DetailRow
 								label='Max OT hours (per day)'
@@ -162,7 +151,7 @@ const ScheduleDetails = ({ schedule, scheduleId, onGroupsChanged }: ScheduleDeta
 										: undefined
 								}
 							/>
-							<DetailRow label='Notes' value={schedule?.notes} />
+							<DetailRow label='Notes' value={schedule?.notes} span={2} />
 						</div>
 					</CardBody>
 				</Card>

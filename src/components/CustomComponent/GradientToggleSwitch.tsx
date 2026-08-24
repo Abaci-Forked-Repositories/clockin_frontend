@@ -7,6 +7,7 @@ type GradientToggleSwitchProps = {
 	onChange: (checked: boolean) => void;
 	disabled?: boolean;
 	className?: string;
+	size?: 'sm' | 'md';
 };
 
 const GradientToggleSwitch: FC<GradientToggleSwitchProps> = ({
@@ -15,6 +16,7 @@ const GradientToggleSwitch: FC<GradientToggleSwitchProps> = ({
 	onChange,
 	disabled = false,
 	className,
+	size = 'md',
 }) => {
 	const handleToggle = () => {
 		if (!disabled) onChange(!checked);
@@ -35,7 +37,12 @@ const GradientToggleSwitch: FC<GradientToggleSwitchProps> = ({
 			aria-checked={checked}
 			id={id}
 			disabled={disabled}
-			className={classNames('gradient-toggle-switch', checked && 'gradient-toggle-switch--checked', className)}
+			className={classNames(
+				'gradient-toggle-switch',
+				size === 'sm' && 'gradient-toggle-switch--sm',
+				checked && 'gradient-toggle-switch--checked',
+				className,
+			)}
 			onClick={handleToggle}
 			onKeyDown={handleKeyDown}>
 			<span className='gradient-toggle-switch__thumb' />

@@ -10,6 +10,7 @@ type ScheduleMobileDayViewProps = {
 	events: any[];
 	onViewDetails?: () => void;
 	detailLoading?: boolean;
+	loading?: boolean;
 };
 
 const ScheduleMobileDayView = ({
@@ -18,6 +19,7 @@ const ScheduleMobileDayView = ({
 	events,
 	onViewDetails,
 	detailLoading = false,
+	loading = false,
 }: ScheduleMobileDayViewProps) => {
 	const isToday = focusedDay.isSame(dayjs(), 'day');
 
@@ -48,6 +50,7 @@ const ScheduleMobileDayView = ({
 					events={events}
 					onViewDetails={onViewDetails}
 					detailLoading={detailLoading}
+					loading={loading}
 				/>
 			</MobileDayNavigator>
 		</div>

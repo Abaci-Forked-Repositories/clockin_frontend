@@ -71,7 +71,7 @@ const ReusableScheduleCalendar = ({
 	const showViewFilter = enableViewFilter && calendarType === 'user';
 	/** Without the filter, show status + shifts (group/schedule calendars). */
 	const effectiveTab = showViewFilter ? activeTab : 'All';
-	const showTopControls = !(loading && hideLoadingIndicator);
+	const showTopControls = isMobile || !(loading && hideLoadingIndicator);
 
 	useEffect(() => {
 		initialLoadNotifiedRef.current = false;
@@ -727,7 +727,7 @@ const ReusableScheduleCalendar = ({
 				</div>
 			)}
 			<div className='position-relative schedule-calendar' style={{ minHeight: height }}>
-				{loading ? (
+				{!isMobile && loading ? (
 					hideLoadingIndicator ? (
 						<div style={{ height }} aria-hidden />
 					) : (
@@ -741,7 +741,8 @@ const ReusableScheduleCalendar = ({
 					<ScheduleMobileDayView
 						focusedDay={focusedDay}
 						onFocusedDayChange={handleFocusedDayChange}
-						events={mobileDayEvents}
+						events={loading ? [] : mobileDayEvents}
+						loading={loading}
 						onViewDetails={
 							onDateClick
 								? () => handleDateClick(focusedDay.toDate())

@@ -386,17 +386,31 @@ const SiteAttendanceSection = ({ siteId, site, siteName }: SiteAttendanceSection
 											.then((response) => {
 												const data = response?.data;
 												if (data?.attendance_summary) {
-													setSummaryMeta((prev) => ({
-														...prev,
-														summary: data.attendance_summary ?? null,
-														date: data.date ?? prev.date,
-														siteLabel:
-															data.site?.name || prev.siteLabel || siteName || '',
-														totalEmployees:
+													setSummaryMeta((prev) => {
+														const nextSummary = data.attendance_summary ?? null;
+														const nextDate = data.date ?? prev.date;
+														const nextSiteLabel =
+															data.site?.name || prev.siteLabel || siteName || '';
+														const nextTotal =
 															statusFilter === 'all' && typeof data.count === 'number'
 																? data.count
-																: prev.totalEmployees,
-													}));
+																: prev.totalEmployees;
+														if (
+															prev.summary === nextSummary &&
+															prev.date === nextDate &&
+															prev.siteLabel === nextSiteLabel &&
+															prev.totalEmployees === nextTotal
+														) {
+															return prev;
+														}
+														return {
+															...prev,
+															summary: nextSummary,
+															date: nextDate,
+															siteLabel: nextSiteLabel,
+															totalEmployees: nextTotal,
+														};
+													});
 												}
 												resolve({
 													data: Array.isArray(data?.results) ? data.results : [],

@@ -149,6 +149,7 @@ const UserFields = ({
 					name='is_manager'
 					label='Manager Role'
 					layout='form-field'
+					size='sm'
 				/>
 			</div>
 			<div className='col-12 mb-2'>
@@ -157,6 +158,7 @@ const UserFields = ({
 					name='is_hr'
 					label='HR Role'
 					layout='form-field'
+					size='sm'
 				/>
 			</div>
 		</div>

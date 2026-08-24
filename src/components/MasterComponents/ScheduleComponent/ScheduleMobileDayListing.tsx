@@ -2,6 +2,7 @@ import React from 'react';
 import Icon from '../../icon/Icon';
 import { statusColorLightBackground } from '../../../pages/Attendance/attendanceStatusUtils';
 import type { TIcons } from '../../../type/icons-type';
+import MobileCalendarSkeleton from '../../CustomComponent/Skeleton/MobileCalendarSkeleton';
 
 type ScheduleEventKind = 'status' | 'shift' | 'leave' | 'ot' | string;
 
@@ -19,19 +20,24 @@ type ScheduleMobileDayListingProps = {
 	events: any[];
 	onViewDetails?: () => void;
 	detailLoading?: boolean;
+	loading?: boolean;
 };
 
 const ScheduleMobileDayListing = ({
 	events,
 	onViewDetails,
 	detailLoading = false,
+	loading = false,
 }: ScheduleMobileDayListingProps) => {
+	if (loading || (detailLoading && events.length === 0)) {
+		return <MobileCalendarSkeleton contentOnly variant='schedule' cardCount={3} />;
+	}
+
 	return (
 		<div className='schedule-mobile-day-listing'>
 			{events.length === 0 ? (
 				<div className='schedule-mobile-day-listing__empty text-center py-4 px-3'>
-					<div
-						className='schedule-mobile-day-listing__empty-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-3'>
+					<div className='schedule-mobile-day-listing__empty-icon d-inline-flex align-items-center justify-content-center rounded-circle mb-3'>
 						<Icon icon='EventAvailable' size='2x' />
 					</div>
 					<div className='fw-semibold'>Nothing on this day</div>

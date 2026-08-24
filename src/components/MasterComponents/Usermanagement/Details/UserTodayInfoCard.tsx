@@ -95,11 +95,14 @@ const UserTodayInfoCard = ({ userId, fillHeight = false }: Props) => {
 
     return (
         <Card
-            className={classNames('w-100', fillHeight && 'h-100 d-flex flex-column')}
+            className={classNames(
+				'user-today-card w-100',
+				fillHeight && 'h-100 d-flex flex-column',
+			)}
             stretch={fillHeight}>
-            <CardHeader>
+            <CardHeader className='user-today-card__header'>
                 <CardLabel icon='Today' iconColor='warning'>
-                    <CardTitle tag='div' className='h5 text-warning'>
+                    <CardTitle tag='div' className='h5 text-warning mb-0'>
                         {todayLabel}
                     </CardTitle>
                 </CardLabel>
@@ -118,8 +121,8 @@ const UserTodayInfoCard = ({ userId, fillHeight = false }: Props) => {
                         No schedule or attendance recorded for today.
                     </p>
                 ) : (
-                    <div className='row g-3 align-items-start'>
-                        <div className='col-12 col-md-6 col-xl-3 d-flex flex-column'>
+                    <div className='user-today-card__grid'>
+                        <div className='user-today-card__tile'>
                             <TodayInfoLabel>Status</TodayInfoLabel>
                             <TodayInfoValue>
                                 <StatusBadge
@@ -128,7 +131,7 @@ const UserTodayInfoCard = ({ userId, fillHeight = false }: Props) => {
                                 />
                             </TodayInfoValue>
                         </div>
-                        <div className='col-12 col-md-6 col-xl-3 d-flex flex-column'>
+                        <div className='user-today-card__tile'>
                             <TodayInfoLabel icon={<CalendarTodayIcon sx={LABEL_ICON_SX} />}>
                                 Schedule
                             </TodayInfoLabel>
@@ -157,7 +160,7 @@ const UserTodayInfoCard = ({ userId, fillHeight = false }: Props) => {
                                 ) : null}
                             </TodayInfoValue>
                         </div>
-                        <div className='col-12 col-md-6 col-xl-3 d-flex flex-column'>
+                        <div className='user-today-card__tile'>
                             <TodayInfoLabel icon={<HistoryToggleOffIcon sx={LABEL_ICON_SX} />}>
                                 Leave
                             </TodayInfoLabel>
@@ -169,7 +172,7 @@ const UserTodayInfoCard = ({ userId, fillHeight = false }: Props) => {
                                     : 'None'}
                             </TodayInfoValue>
                         </div>
-                        <div className='col-12 col-md-6 col-xl-3 d-flex flex-column'>
+                        <div className='user-today-card__tile'>
                             <TodayInfoLabel icon={<AccessTimeIcon sx={LABEL_ICON_SX} />}>
                                 Overtime
                             </TodayInfoLabel>

@@ -37,10 +37,10 @@ const UserManagementPage = () => {
 					</CardTitle>
 				</SubHeaderLeft>
 			</SubHeader>
-			<Page container='fluid' className='position-relative'>
+			<Page container='fluid' className='position-relative user-detail-page'>
 				{showPageLoader && <UserDetailSkeleton />}
 				<div className={showPageLoader ? 'd-none' : undefined}>
-					<div className='row g-4 align-items-stretch'>
+					<div className='row g-3 g-lg-4 align-items-stretch user-detail-page__row'>
 						<div className='col-12 col-lg-6 d-flex'>
 							<UserDetails userId={id} onLoadComplete={onUserLoadComplete} fillHeight />
 						</div>
@@ -52,7 +52,7 @@ const UserManagementPage = () => {
 					</div>
 
 					{userReady ? (
-						<div className='row g-4 align-items-stretch mt-0'>
+						<div className='row g-3 g-lg-4 align-items-stretch mt-0 user-detail-page__row'>
 							<div className='col-12 col-lg-6 d-flex'>
 								<UserTodayInfoCard userId={id} fillHeight />
 							</div>
@@ -63,7 +63,7 @@ const UserManagementPage = () => {
 					) : null}
 
 					{userReady ? (
-						<div className='row g-4 mt-0'>
+						<div className='row g-3 g-lg-4 mt-0 user-detail-page__row'>
 							<div className='col-12'>
 								<UserScheduleCalendarSection userId={id} />
 							</div>

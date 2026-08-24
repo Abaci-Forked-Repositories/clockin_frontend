@@ -211,15 +211,15 @@ const ScheduleAssignedGroupsSection = ({
 
 	return (
 		<>
-			<Card className='h-100'>
-				<CardHeader>
-					<CardLabel icon='Groups' iconColor='warning'>
-						<CardTitle tag='div' className='h5 text-warning mb-0'>
+			<Card className='h-100 schedule-assigned-groups-card'>
+				<CardHeader className='schedule-assigned-groups-card__header'>
+					<CardLabel icon='Groups' iconColor='warning' className='min-w-0'>
+						<CardTitle tag='div' className='h5 text-warning mb-0 text-truncate'>
 							Assigned groups
 						</CardTitle>
 					</CardLabel>
 					{canManage && (
-						<CardActions>
+						<CardActions className='schedule-assigned-groups-card__actions'>
 							<AddButton modalShow={setAddOpen} name='Add' />
 						</CardActions>
 					)}
