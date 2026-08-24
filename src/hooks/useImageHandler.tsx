@@ -2,20 +2,26 @@
 import { useEffect, useState } from 'react';
 import { authAxios } from '../axiosInstance';
 import { baseURL } from '../helpers/baseURL';
-// import { baseURL } from './baseURL';
 
 const useImageHandler = (image, type = 'default') => {
 	const [imageUrl, setImageUrl] = useState(null);
+	const [failed, setFailed] = useState(false);
 
 	useEffect(() => {
-		if (!image) return;
+		if (!image) {
+			setImageUrl(null);
+			setFailed(false);
+			return undefined;
+		}
 
 		let isMounted = true;
 		let objectUrl = null;
+		setImageUrl(null);
+		setFailed(false);
 
 		const fetchImage = async () => {
 			try {
-				let url = `${baseURL}/media/${image}`;
+				const url = `${baseURL}/media/${image}`;
 
 				const response = await authAxios.get(url, {
 					responseType: 'blob',
@@ -23,9 +29,16 @@ const useImageHandler = (image, type = 'default') => {
 
 				objectUrl = URL.createObjectURL(response.data);
 
-				if (isMounted) setImageUrl(objectUrl);
+				if (isMounted) {
+					setImageUrl(objectUrl);
+					setFailed(false);
+				}
 			} catch (error) {
 				console.error('Error fetching image:', error);
+				if (isMounted) {
+					setImageUrl(null);
+					setFailed(true);
+				}
 			}
 		};
 
@@ -37,7 +50,7 @@ const useImageHandler = (image, type = 'default') => {
 		};
 	}, [image, type]);
 
-	return imageUrl;
+	return { url: imageUrl, failed };
 };
 
 export default useImageHandler;

@@ -15,6 +15,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import { authAxios } from '../../axiosInstance';
 import AbaciLoader from '../../components/AbaciLoader/AbaciLoader';
 import useToasterNotification from '../../hooks/useToasterNotification';
@@ -297,6 +298,12 @@ const attendanceMetricPills = (
 
 const OVERALL_VIEW_KEY = 'overall';
 
+const groupOptionMeta = (employees: number, counts?: StatusCounts) => {
+	const staff = employees ?? 0;
+	const present = countValue(counts, 'PRESENT');
+	return `${staff} staff · ${present} present`;
+};
+
 type ScheduleDashboardCardProps = {
 	row: DashboardScheduleSummary;
 	scheduleDetailTo: (id: number) => string;
@@ -310,12 +317,36 @@ const ScheduleDashboardCard = ({
 }: ScheduleDashboardCardProps) => {
 	const [selectedKey, setSelectedKey] = useState<string>(OVERALL_VIEW_KEY);
 	const [groupsOpen, setGroupsOpen] = useState(false);
+	const pickerRef = useRef<HTMLDivElement>(null);
 	const groups = Array.isArray(row.group_details) ? row.group_details : [];
 	const statusMeta = getAttendanceStatusMeta(row.status);
 	const isOverall = selectedKey === OVERALL_VIEW_KEY;
 	const selectedGroup = isOverall
 		? null
 		: groups.find((g) => String(g.group_id) === selectedKey) ?? null;
+
+	useEffect(() => {
+		if (!groupsOpen) return undefined;
+		const onPointerDown = (event: MouseEvent) => {
+			if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+				setGroupsOpen(false);
+			}
+		};
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') setGroupsOpen(false);
+		};
+		document.addEventListener('mousedown', onPointerDown);
+		document.addEventListener('keydown', onKeyDown);
+		return () => {
+			document.removeEventListener('mousedown', onPointerDown);
+			document.removeEventListener('keydown', onKeyDown);
+		};
+	}, [groupsOpen]);
+
+	const selectGroup = (key: string) => {
+		setSelectedKey(key);
+		setGroupsOpen(false);
+	};
 
 	const pills = attendanceMetricPills(
 		isOverall ? row.total_employees ?? 0 : selectedGroup?.total_employees ?? 0,
@@ -330,7 +361,11 @@ const ScheduleDashboardCard = ({
 			: null;
 
 	return (
-		<div className='hr-dashboard__schedule-card'>
+		<div
+			className={classNames(
+				'hr-dashboard__schedule-card',
+				groupsOpen && 'hr-dashboard__schedule-card--picker-open',
+			)}>
 			<div className='d-flex justify-content-between align-items-start gap-2 mb-2'>
 				<h3 className='hr-dashboard__schedule-name text-warning mb-0'>
 					{row.schedule_name || '—'}
@@ -352,12 +387,13 @@ const ScheduleDashboardCard = ({
 			/>
 
 			{groups.length > 0 ? (
-				<div className='hr-dashboard__group-picker mt-3'>
+				<div className='hr-dashboard__group-picker mt-3' ref={pickerRef}>
 					<button
 						type='button'
 						className='hr-dashboard__group-toggle'
 						onClick={() => setGroupsOpen((open) => !open)}
 						aria-expanded={groupsOpen}
+						aria-haspopup='listbox'
 						aria-controls={`schedule-groups-panel-${row.schedule_id}`}>
 						<span className='hr-dashboard__group-toggle-label'>
 							{isOverall
@@ -373,19 +409,64 @@ const ScheduleDashboardCard = ({
 					{groupsOpen ? (
 						<div
 							id={`schedule-groups-panel-${row.schedule_id}`}
-							className='hr-dashboard__group-select-panel'>
-							<select
-								id={`schedule-group-${row.schedule_id}`}
-								className='hr-dashboard__group-select'
-								value={selectedKey}
-								onChange={(e) => setSelectedKey(e.target.value)}>
-								<option value={OVERALL_VIEW_KEY}>Overall (all groups)</option>
-								{groups.map((g) => (
-									<option key={g.group_id} value={String(g.group_id)}>
-										{g.group_name || `Group ${g.group_id}`}
-									</option>
-								))}
-							</select>
+							className='hr-dashboard__group-menu'
+							role='listbox'
+							aria-label='Filter schedule by group'>
+							<button
+								type='button'
+								role='option'
+								aria-selected={isOverall}
+								className={classNames(
+									'hr-dashboard__group-option',
+									isOverall && 'hr-dashboard__group-option--selected',
+								)}
+								onClick={() => selectGroup(OVERALL_VIEW_KEY)}>
+								<span className='hr-dashboard__group-option-body'>
+									<span className='hr-dashboard__group-option-name'>
+										Overall (all groups)
+									</span>
+									<span className='hr-dashboard__group-option-meta'>
+										{groupOptionMeta(row.total_employees ?? 0, row.counts)}
+									</span>
+								</span>
+								{isOverall ? (
+									<CheckRoundedIcon
+										className='hr-dashboard__group-option-check'
+										fontSize='small'
+									/>
+								) : null}
+							</button>
+							{groups.map((g) => {
+								const key = String(g.group_id);
+								const selected = selectedKey === key;
+								return (
+									<button
+										key={g.group_id}
+										type='button'
+										role='option'
+										aria-selected={selected}
+										className={classNames(
+											'hr-dashboard__group-option',
+											selected && 'hr-dashboard__group-option--selected',
+										)}
+										onClick={() => selectGroup(key)}>
+										<span className='hr-dashboard__group-option-body'>
+											<span className='hr-dashboard__group-option-name'>
+												{g.group_name || `Group ${g.group_id}`}
+											</span>
+											<span className='hr-dashboard__group-option-meta'>
+												{groupOptionMeta(g.total_employees ?? 0, g.counts)}
+											</span>
+										</span>
+										{selected ? (
+											<CheckRoundedIcon
+												className='hr-dashboard__group-option-check'
+												fontSize='small'
+											/>
+										) : null}
+									</button>
+								);
+							})}
 						</div>
 					) : null}
 				</div>

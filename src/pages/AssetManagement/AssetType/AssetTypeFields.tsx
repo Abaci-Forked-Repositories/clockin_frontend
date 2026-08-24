@@ -46,6 +46,7 @@ const AssetTypeFields = ({ register, control, errors }: AssetTypeFieldsProps) =>
 				label='Consumable'
 				labelFirst
 				layout='form-field'
+				size='sm'
 			/>
 		</div>
 
@@ -56,6 +57,7 @@ const AssetTypeFields = ({ register, control, errors }: AssetTypeFieldsProps) =>
 				label='Bookable'
 				labelFirst
 				layout='form-field'
+				size='sm'
 			/>
 		</div>
 
@@ -66,6 +68,7 @@ const AssetTypeFields = ({ register, control, errors }: AssetTypeFieldsProps) =>
 				label='Self requestable'
 				labelFirst
 				layout='form-field'
+				size='sm'
 			/>
 		</div>
 
@@ -76,6 +79,7 @@ const AssetTypeFields = ({ register, control, errors }: AssetTypeFieldsProps) =>
 				label='User selects item'
 				labelFirst
 				layout='form-field'
+				size='sm'
 			/>
 		</div>
 	</div>

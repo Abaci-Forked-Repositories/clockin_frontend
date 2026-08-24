@@ -44,7 +44,7 @@ const ImageCropper = (props) => {
 	
 	  
 	  // Only pass the image to the hook if it's NOT base64
-	  const imageFromHook = useImageHandler(!isBase64Image(croppedImage) ? croppedImage : null, '');
+	  const { url: imageFromHook } = useImageHandler(!isBase64Image(croppedImage) ? croppedImage : null, '');
 	  
 	  const getAvatarSrc = () => {
 		if (!croppedImage) {

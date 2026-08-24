@@ -1,10 +1,20 @@
-import React, { Children, cloneElement, forwardRef, FC, ReactNode, HTMLAttributes } from 'react';
+import React, {
+	Children,
+	cloneElement,
+	forwardRef,
+	FC,
+	ReactNode,
+	HTMLAttributes,
+	useEffect,
+	useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { randomColor } from '../helpers/helpers';
 import Popovers from './bootstrap/Popovers';
 import useDarkMode from '../hooks/useDarkMode';
 import { TColor } from '../type/color-type';
+import fallbackAvatar from '../assets/img/Avatar.svg';
 
 interface IAvatarGroupProps {
 	className?: string;
@@ -96,6 +106,13 @@ const Avatar = forwardRef<HTMLImageElement, IAvatarProps>(
 		ref,
 	) => {
 		const { darkModeStatus } = useDarkMode();
+		const [broken, setBroken] = useState(false);
+
+		useEffect(() => {
+			setBroken(false);
+		}, [src, srcSet]);
+
+		const resolvedSrc = broken || !src ? fallbackAvatar : src;
 
 		const INNER = (
 			<img
@@ -113,11 +130,12 @@ const Avatar = forwardRef<HTMLImageElement, IAvatarProps>(
 					`bg-l${darkModeStatus ? 'o' : ''}25-${color}`,
 					className,
 				)}
-				srcSet={srcSet}
-				src={src}
-				alt='Avatar'
+				srcSet={broken ? undefined : srcSet}
+				src={resolvedSrc}
+				alt=''
 				width={size}
 				height={size}
+				onError={() => setBroken(true)}
 				// eslint-disable-next-line react/jsx-props-no-spreading
 				{...props}
 			/>

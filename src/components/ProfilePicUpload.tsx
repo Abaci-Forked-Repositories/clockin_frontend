@@ -27,7 +27,7 @@ const ProfilePicUpload = ({image,setImage}:any) => {
 
 
 
-		  const imageFromHook = useImageHandler(!isBase64Image(image) ? image : null, '');
+		  const { url: imageFromHook } = useImageHandler(!isBase64Image(image) ? image : null, '');
 		  
 		  const getAvatarSrc = () => {
 			if (!image) {

@@ -204,7 +204,7 @@ const LeaveSettings: FC = () => {
 										sx={{ color: 'warning.main' }}
 										aria-label='Fiscal year start month'
 										marks={fiscalMonthMarks}
-										valueLabelDisplay='on'
+										valueLabelDisplay='off'
 										value={fiscalMonth}
 										step={1}
 										min={1}

@@ -400,7 +400,7 @@ const LeaveRequests = ({
 					onCardClick={handleSummaryCardClick}
 				/>
 			) : null}
-			<Card stretch>
+			<Card>
 				<CardBody>
 					<div className='material-table-wrapper'>
 						<ThemeProvider theme={theme}>

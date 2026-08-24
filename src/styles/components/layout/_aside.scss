@@ -16,6 +16,8 @@
 	background-color: map.get($aside, background-color);
 	color: color-contrast(map.get($aside, background-color));
 	transition: $transition-base;
+	width: map-deep-get($aside, minimize, width);
+	overflow: hidden;
 
 	// Mobile Status
 	@include aside-close(true) {

@@ -21,11 +21,11 @@
   transform: translate(-50%, -50%);
 }
 
-.box--inline {
-  position: relative;
-  left: auto;
-  top: auto;
-  transform: none;
+.box.box--inline {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  transform: none !important;
   width: 180px;
   height: 64px;
 }

@@ -25,6 +25,7 @@ import { normalizeTenantSlug, withClientTenantPrefix } from '../../helpers/baseU
 import PageWrapper from '../../layout/PageWrapper/PageWrapper';
 import Page from '../../layout/Page/Page';
 import Error from '../../helpers/Error';
+import Icon from '../../components/icon/Icon';
 
 const USER_LOGIN_API = 'api/users/login/';
 const VALIDATE_EMAIL_API = 'api/users/validate-email/';
@@ -40,6 +41,7 @@ const Login = ({
 	const { userData, setUser, setUserData } = useContext(AuthContext);
 	const { darkModeStatus } = useDarkMode();
 	const [signInPassword] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const [waitingForAxios, setWaitingForAxios] = useState(false);
 	const [availableTenants, setAvailableTenants] = useState([]);
 	const [selectedTenant, setSelectedTenant] = useState('');
@@ -337,7 +339,7 @@ const Login = ({
 				'bg-dark': darkModeStatus,
 			})}>
 			<Page className='p-0' container={false}>
-				<div style={{ width: '100%', height: '100vh' }}>
+				<div className='login-page-shell'>
 					<Container fluid className='p-0'>
 						<Row className='g-0'>
 							<Col lg={8}>
@@ -351,7 +353,7 @@ const Login = ({
 								<div
 									className='authentication-page-content p-4 d-flex justify-content-center align-items-center min-vh-100'
 									style={{ overflowY: 'auto' }}>
-									<div style={{ width: '80%' }}>
+									<div className='login-form-inner'>
 										<div className='py-5'>
 											<div className='text-center mb-4'>
 												<img
@@ -412,18 +414,33 @@ const Login = ({
 														</div>
 													)}
 													<br />
-													<FormGroup id='loginPassword' isFloating label='Password'>
-														<Input
-															type='password'
-															autoComplete='current-password'
-															value={formik.values.loginPassword}
-															isTouched={formik.touched.loginPassword}
-															invalidFeedback={formik.errors.loginPassword}
-															isValid={formik.isValid}
-															onChange={formik.handleChange}
-															onBlur={formik.handleBlur}
-														/>
-													</FormGroup>
+													<div className='login-password-field'>
+														<FormGroup id='loginPassword' isFloating label='Password'>
+															<Input
+																type={showPassword ? 'text' : 'password'}
+																autoComplete='current-password'
+																className='pe-5'
+																value={formik.values.loginPassword}
+																isTouched={formik.touched.loginPassword}
+																invalidFeedback={formik.errors.loginPassword}
+																isValid={formik.isValid}
+																onChange={formik.handleChange}
+																onBlur={formik.handleBlur}
+															/>
+														</FormGroup>
+														<button
+															type='button'
+															className='login-password-toggle'
+															aria-label={
+																showPassword ? 'Hide password' : 'Show password'
+															}
+															onClick={() => setShowPassword((visible) => !visible)}>
+															<Icon
+																icon={showPassword ? 'VisibilityOff' : 'Visibility'}
+																size='lg'
+															/>
+														</button>
+													</div>
 												</div>
 												<div className='d-flex justify-content-end'>
 													<p

@@ -1,5 +1,5 @@
-import React from 'react';
-import no_image from '../../assets/img/Noimage.png';
+import React, { useEffect, useState } from 'react';
+import no_image from '../../assets/img/Avatar.svg';
 import useImageHandler from '../../hooks/useImageHandler';
 import { isBase64Image, normalizeMediaPath } from '../../helpers/functions';
 import urlMaker from '../../helpers/UrlMaker';
@@ -12,17 +12,25 @@ type ImageCellProps = {
 const ImageCell = ({ fullImage, size = 50 }: ImageCellProps) => {
 	const isDataUrl = Boolean(fullImage && isBase64Image(fullImage));
 	const mediaPath = isDataUrl ? null : normalizeMediaPath(fullImage);
-	const blobUrl = useImageHandler(mediaPath, 'avatars');
+	const { url: blobUrl, failed } = useImageHandler(mediaPath, 'avatars');
+	const [broken, setBroken] = useState(false);
 
-	const imageSrc = isDataUrl
-		? String(fullImage)
-		: blobUrl
-			? blobUrl
-			: !fullImage
-				? no_image
-				: /^https?:\/\//i.test(String(fullImage))
-					? String(fullImage)
-					: urlMaker(String(fullImage), 'avatars');
+	useEffect(() => {
+		setBroken(false);
+	}, [fullImage]);
+
+	const imageSrc =
+		isDataUrl && fullImage
+			? String(fullImage)
+			: blobUrl
+				? blobUrl
+				: !fullImage || failed || broken || mediaPath
+					? no_image
+					: /^https?:\/\//i.test(String(fullImage))
+						? String(fullImage)
+						: urlMaker(String(fullImage), 'avatars') || no_image;
+
+	const isPlaceholder = imageSrc === no_image;
 
 	return (
 		<div
@@ -42,16 +50,12 @@ const ImageCell = ({ fullImage, size = 50 }: ImageCellProps) => {
 				src={imageSrc}
 				alt=''
 				style={{
-					width: '100%',
-					height: '100%',
-					objectFit: mediaPath ? 'cover' : 'contain',
-					borderRadius: 6,
+					width: isPlaceholder ? '70%' : '100%',
+					height: isPlaceholder ? '70%' : '100%',
+					objectFit: isPlaceholder ? 'contain' : 'cover',
+					borderRadius: isPlaceholder ? 0 : 6,
 				}}
-				onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-					const target = e.currentTarget;
-					target.onerror = null;
-					target.src = no_image;
-				}}
+				onError={() => setBroken(true)}
 			/>
 		</div>
 	);

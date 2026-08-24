@@ -26,12 +26,12 @@
 @mixin aside-close-wrapper($isFly: false) {
 	@if $isFly {
 		@include aside-modern {
-			@at-root .modern-design .aside:not(.open) + & {
+			@at-root .modern-design .aside:not(.open) ~ & {
 				@content;
 			}
 		}
 	} @else {
-		@at-root .aside:not(.open) + & {
+		@at-root .aside:not(.open) ~ & {
 			@content;
 		}
 	}
@@ -39,7 +39,7 @@
 
 @mixin aside-touch-close-wrapper() {
 	@include aside-modern {
-		@at-root .modern-design .aside:not([style*='left: 0']) ~ & {
+		@at-root .modern-design .aside.open:not([style*='left: 0']) ~ & {
 			@content;
 		}
 	}

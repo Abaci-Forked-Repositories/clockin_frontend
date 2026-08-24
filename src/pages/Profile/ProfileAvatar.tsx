@@ -12,7 +12,6 @@ import { authAxiosFileUpload } from '../../axiosInstance';
 import base64toFile from '../../helpers/base64toFile';
 import useToasterNotification from '../../hooks/useToasterNotification';
 import useUserAvatarSrc from '../../hooks/useUserAvatarSrc';
-import { resolveUserAvatarSource } from '../../helpers/functions';
 
 const AVATAR_SIZE = 200;
 
@@ -61,9 +60,8 @@ const ProfileAvatar = () => {
 
 	};
 	const resolvedAvatarSrc = useUserAvatarSrc(userData, Profile);
-	const hasUploadedAvatar = Boolean(image || resolveUserAvatarSource(userData));
-	const avatarSrc = hasUploadedAvatar ? image || resolvedAvatarSrc : Profile;
-	const showPlaceholder = !hasUploadedAvatar;
+	const avatarSrc = image || resolvedAvatarSrc;
+	const showPlaceholder = avatarSrc === Profile;
 
 	return (
 		<Card className='shadow-3d-info prevent-userselect'>
@@ -100,7 +98,7 @@ const ProfileAvatar = () => {
 						<img
 							key={avatarSrc}
 							src={avatarSrc}
-							alt='Profile avatar'
+							alt=''
 							width={AVATAR_SIZE}
 							height={AVATAR_SIZE}
 							style={{
@@ -108,6 +106,10 @@ const ProfileAvatar = () => {
 								height: '100%',
 								objectFit: showPlaceholder ? 'contain' : 'cover',
 								padding: showPlaceholder ? '22%' : 0,
+							}}
+							onError={(event) => {
+								event.currentTarget.onerror = null;
+								event.currentTarget.src = Profile;
 							}}
 						/>
 					</div>

@@ -5,7 +5,7 @@ import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlin
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { authAxios } from '../../../axiosInstance';
-import AbaciLoader from '../../../components/AbaciLoader/AbaciLoader';
+import Spinner from '../../../components/bootstrap/Spinner';
 import Card, { CardBody, CardHeader } from '../../../components/bootstrap/Card';
 import useToasterNotification from '../../../hooks/useToasterNotification';
 import { statusColorCodes } from '../../../helpers/constants';
@@ -258,7 +258,7 @@ const LeaveRequestsTodaySummary = ({
 
 	if (loading && !summary) {
 		return (
-			<Card stretch className='mb-3'>
+			<Card className='mb-3'>
 				<CardHeader>
 					<div className='hr-dashboard w-100'>
 						<div className='hr-dashboard__section-title mb-0'>
@@ -268,8 +268,8 @@ const LeaveRequestsTodaySummary = ({
 					</div>
 				</CardHeader>
 				<CardBody>
-					<div className='d-flex justify-content-center py-3'>
-						<AbaciLoader inline />
+					<div className='d-flex justify-content-center align-items-center py-2'>
+						<Spinner isSmall color='info' />
 					</div>
 				</CardBody>
 			</Card>
@@ -307,7 +307,7 @@ const LeaveRequestsTodaySummary = ({
 	const meta = [dateLabel, summary.timezone].filter(Boolean).join(' · ');
 
 	return (
-		<Card stretch className='mb-3'>
+		<Card className='mb-3'>
 			<CardHeader>
 				<div className='hr-dashboard w-100'>
 					<div className='d-flex flex-wrap justify-content-between align-items-center gap-2'>

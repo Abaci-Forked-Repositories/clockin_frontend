@@ -162,6 +162,7 @@ const GroupFields = ({
 					label='Send daily attendance email'
 					labelFirst
 					layout='form-field'
+					size='sm'
 				/>
 			</div>
 

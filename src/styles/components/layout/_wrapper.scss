@@ -53,6 +53,19 @@
 		}
 	}
 
+	// Shrunk aside: offset content even if aside is not an adjacent sibling.
+	@include media-breakpoint-up(map-get($aside, mobile-breakpoint)) {
+		@at-root .app:has(.aside:not(.open)) & {
+			padding-left: map-deep-get($aside, minimize, width);
+		}
+	}
+
+	@include aside-modern {
+		@at-root .modern-design .app:has(.aside:not(.open)) & {
+			padding-left: map-deep-get($aside, minimize, width) + $spacer;
+		}
+	}
+
 	// Right Panel
 	&.wrapper-right-panel-active {
 		width: calc(100% - #{$offcanvas-horizontal-width});

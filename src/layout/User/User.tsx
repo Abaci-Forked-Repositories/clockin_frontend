@@ -46,9 +46,14 @@ const User = () => {
 					<img
 						srcSet={avatarSrc}
 						src={avatarSrc}
-						alt='Avatar'
+						alt=''
 						width={128}
 						height={128}
+						onError={(event) => {
+							event.currentTarget.onerror = null;
+							event.currentTarget.src = ProfilePic;
+							event.currentTarget.srcset = ProfilePic;
+						}}
 					/>
 
 				</div>
