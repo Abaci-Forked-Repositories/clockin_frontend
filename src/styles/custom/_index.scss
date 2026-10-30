@@ -2314,6 +2314,7 @@ overflow-x: hidden;
 		box-shadow: var(--hr-neu-shadow);
 		padding: 1.25rem 1.35rem;
 		height: 100%;
+		overflow: visible;
 		transition: transform 0.2s ease, box-shadow 0.2s ease;
 
 		&:hover {
@@ -2323,6 +2324,8 @@ overflow-x: hidden;
 
 		&--picker-open,
 		&--picker-open:hover {
+			position: relative;
+			z-index: 6;
 			transform: none;
 		}
 	}
@@ -2382,7 +2385,12 @@ overflow-x: hidden;
 	}
 
 	&__group-menu {
-		margin-top: 0.5rem;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 100%;
+		z-index: 20;
+		margin-top: 0.35rem;
 		padding: 0.3rem;
 		border-radius: 0.85rem;
 		background: var(--bs-card-bg, #fff);
